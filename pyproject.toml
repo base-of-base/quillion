@@ -1,0 +1,11 @@
+[project]
+name = "quillion"
+version = "0.1.0"
+description = "Web framework"
+readme = ""
+requires-python = ">=3.7"
+dependencies = ["watchdog"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
