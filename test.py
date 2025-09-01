@@ -1,4 +1,12 @@
-from quillion import app, page, box, text, button, image, State
+from quillion import (
+    app,
+    page,
+    box,
+    text,
+    button,
+    image,
+    State
+)
 
 
 class AppState(State):
