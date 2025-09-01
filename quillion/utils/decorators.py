@@ -1,6 +1,7 @@
 from typing import Callable
 from ..pages.base import Page, PageMeta
 
+
 def page(route: str):
     def decorator(func: Callable):
         class GeneratedPage(Page, metaclass=PageMeta):
@@ -11,4 +12,5 @@ def page(route: str):
 
         GeneratedPage.__name__ = func.__name__
         return GeneratedPage
+
     return decorator

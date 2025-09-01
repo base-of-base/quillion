@@ -30,6 +30,7 @@ FONT_WEIGHT_MAP = {
     "normal": "400",
 }
 
+
 # --- Вспомогательная функция для добавления 'px' к числовым значениям ---
 def _add_px_unit(value):
     """Добавляет 'px', если значение является числом или строкой с числом."""
@@ -37,9 +38,11 @@ def _add_px_unit(value):
         return f"{value}px"
     return value
 
+
 class StyleProperty:
     def to_css_properties_dict(self) -> Dict[str, str]:
         raise NotImplementedError
+
 
 class FontFamily(StyleProperty):
     def __init__(self, *fonts: str):
@@ -48,8 +51,11 @@ class FontFamily(StyleProperty):
     def to_css_properties_dict(self) -> Dict[str, str]:
         return {"font-family": ", ".join(self.fonts)}
 
+
 class Background(StyleProperty):
-    def __init__(self, color: Optional["Color"] = None, image: Optional["Image"] = None):
+    def __init__(
+        self, color: Optional["Color"] = None, image: Optional["Image"] = None
+    ):
         self.color = color
         self.image = image
 
@@ -61,14 +67,17 @@ class Background(StyleProperty):
             props["background-image"] = f"url('{self.image.src}')"
         return props
 
+
 class Color:
     def __init__(self, value: str):
         # Используем карту цветов или возвращаем исходное значение
         self.hex = COLOR_MAP.get(value, value)
 
+
 class Image:
     def __init__(self, src: str):
         self.src = src
+
 
 class Padding(StyleProperty):
     def __init__(self, value: str):
@@ -77,6 +86,7 @@ class Padding(StyleProperty):
     def to_css_properties_dict(self) -> Dict[str, str]:
         return {"padding": _add_px_unit(self.value)}
 
+
 class Margin(StyleProperty):
     def __init__(self, value: str):
         self.value = value
@@ -84,8 +94,15 @@ class Margin(StyleProperty):
     def to_css_properties_dict(self) -> Dict[str, str]:
         return {"margin": _add_px_unit(self.value)}
 
+
 class DisplayFlex(StyleProperty):
-    def __init__(self, direction: str = "row", justify: str = "flex-start", align: str = "stretch", gap = 0):
+    def __init__(
+        self,
+        direction: str = "row",
+        justify: str = "flex-start",
+        align: str = "stretch",
+        gap=0,
+    ):
         self.direction = direction
         self.justify = justify
         self.align = align
@@ -100,6 +117,7 @@ class DisplayFlex(StyleProperty):
             "gap": _add_px_unit(self.gap),
         }
 
+
 class BorderRadius(StyleProperty):
     def __init__(self, value: str):
         self.value = value
@@ -108,6 +126,7 @@ class BorderRadius(StyleProperty):
         # Используем карту border-radius или возвращаем исходное значение
         val = BORDER_RADIUS_MAP.get(self.value, self.value)
         return {"border-radius": val}
+
 
 class BoxShadow(StyleProperty):
     def __init__(self, value: str):
@@ -118,6 +137,7 @@ class BoxShadow(StyleProperty):
         val = BOX_SHADOW_MAP.get(self.value, self.value)
         return {"box-shadow": val}
 
+
 class Border(StyleProperty):
     def __init__(self, width: str, style: str, color: str):
         self.width = width
@@ -127,6 +147,7 @@ class Border(StyleProperty):
     def to_css_properties_dict(self) -> Dict[str, str]:
         return {"border": f"{self.width} {self.style} {self.color}"}
 
+
 class Transition(StyleProperty):
     def __init__(self, value: str):
         self.value = value
@@ -134,12 +155,14 @@ class Transition(StyleProperty):
     def to_css_properties_dict(self) -> Dict[str, str]:
         return {"transition": self.value}
 
+
 class Cursor(StyleProperty):
     def __init__(self, value: str):
         self.value = value
 
     def to_css_properties_dict(self) -> Dict[str, str]:
         return {"cursor": self.value}
+
 
 class FontSize(StyleProperty):
     def __init__(self, value: str):
@@ -150,6 +173,7 @@ class FontSize(StyleProperty):
         val = FONT_SIZE_MAP.get(self.value, self.value)
         return {"font-size": val}
 
+
 class FontWeight(StyleProperty):
     def __init__(self, value: str):
         self.value = value
@@ -159,12 +183,14 @@ class FontWeight(StyleProperty):
         val = FONT_WEIGHT_MAP.get(self.value, self.value)
         return {"font-weight": val}
 
+
 class Width(StyleProperty):
     def __init__(self, value: str):
         self.value = value
 
     def to_css_properties_dict(self) -> Dict[str, str]:
         return {"width": _add_px_unit(self.value)}
+
 
 class MinHeight(StyleProperty):
     def __init__(self, value: str):
@@ -173,12 +199,14 @@ class MinHeight(StyleProperty):
     def to_css_properties_dict(self) -> Dict[str, str]:
         return {"min-height": _add_px_unit(self.value)}
 
+
 class TextDecoration(StyleProperty):
     def __init__(self, value: str):
         self.value = value
 
     def to_css_properties_dict(self) -> Dict[str, str]:
         return {"text-decoration": self.value}
+
 
 class TextColor(StyleProperty):
     def __init__(self, value: str):
@@ -189,6 +217,7 @@ class TextColor(StyleProperty):
         val = COLOR_MAP.get(self.value, self.value)
         return {"color": val}
 
+
 class BorderColor(StyleProperty):
     def __init__(self, color: str):
         self.color = color
@@ -198,12 +227,14 @@ class BorderColor(StyleProperty):
         val = COLOR_MAP.get(self.color, self.color)
         return {"border-color": val}
 
+
 class LineHeight(StyleProperty):
     def __init__(self, value: float):
         self.value = value
 
     def to_css_properties_dict(self) -> Dict[str, str]:
         return {"line-height": str(self.value)}
+
 
 class ParagraphBase(StyleProperty):
     def __init__(self, *properties: StyleProperty):
@@ -216,6 +247,7 @@ class ParagraphBase(StyleProperty):
                 props.update(prop.to_css_properties_dict())
         return props
 
+
 class ButtonBase(StyleProperty):
     def __init__(self, *properties: StyleProperty):
         self.properties = properties
@@ -226,6 +258,7 @@ class ButtonBase(StyleProperty):
             if prop:
                 props.update(prop.to_css_properties_dict())
         return props
+
 
 class ButtonHover(StyleProperty):
     def __init__(self, *properties: StyleProperty):
@@ -238,6 +271,7 @@ class ButtonHover(StyleProperty):
                 props.update(prop.to_css_properties_dict())
         return props
 
+
 class LinkBase(StyleProperty):
     def __init__(self, *properties: StyleProperty):
         self.properties = properties
@@ -248,6 +282,7 @@ class LinkBase(StyleProperty):
             if prop:
                 props.update(prop.to_css_properties_dict())
         return props
+
 
 class LinkHover(StyleProperty):
     def __init__(self, *properties: StyleProperty):

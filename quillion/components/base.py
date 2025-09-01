@@ -3,12 +3,16 @@ import inspect
 from typing import Optional, Dict, Any, Callable, Tuple
 from ..ui.element import Element
 
+
 class StateMeta(type):
     def __init__(self, name, bases, attrs):
         super().__init__(name, bases, attrs)
         self._defaults = {}
         for key in list(attrs.keys()):
-            if not key.startswith('_') and not (callable(attrs[key]) or isinstance(attrs[key], (classmethod, staticmethod, property))):
+            if not key.startswith("_") and not (
+                callable(attrs[key])
+                or isinstance(attrs[key], (classmethod, staticmethod, property))
+            ):
                 self._defaults[key] = attrs[key]
         for key in self._defaults:
             delattr(self, key)
@@ -18,11 +22,11 @@ class StateMeta(type):
 
     def get_instance(self):
         from ..core.app import Quillion
-        
+
         app = Quillion._instance
         if app is None or app.websocket is None:
             raise RuntimeError("No active WebSocket connection for state access")
-        if not hasattr(app, '_state_instances'):
+        if not hasattr(app, "_state_instances"):
             app._state_instances = {}
         if self not in app._state_instances:
             app._state_instances[self] = State(self)
@@ -39,6 +43,7 @@ class StateMeta(type):
                     if inspect.iscoroutine(callback_result):
                         asyncio.create_task(callback_result)
 
+
 class State(metaclass=StateMeta):
     _rerender_callback: Optional[Callable[[], Any]] = None
 
@@ -53,6 +58,7 @@ class State(metaclass=StateMeta):
 
     def _set_rerender_callback(self, callback: Callable[[], Any]):
         self._rerender_callback = callback
+
 
 class Component(Element):
     def __init__(self, tag: str = "div", **kwargs):
@@ -76,9 +82,7 @@ class Component(Element):
         current_index = self._hook_index
         self._hook_index += 1
         if current_index not in self._hook_state:
-            if inspect.isclass(initial_value) and issubclass(
-                initial_value, State
-            ):
+            if inspect.isclass(initial_value) and issubclass(initial_value, State):
                 state_instance = initial_value.get_instance()
                 state_instance._set_rerender_callback(self._request_rerender)
                 self._hook_state[current_index] = state_instance
@@ -88,6 +92,7 @@ class Component(Element):
         if isinstance(state_value, State):
             return state_value
         else:
+
             def setter(new_value: Any):
                 if callable(new_value):
                     self._hook_state[current_index] = new_value(
@@ -96,6 +101,7 @@ class Component(Element):
                 else:
                     self._hook_state[current_index] = new_value
                 self._request_rerender()
+
             return state_value, setter
 
     def render_component(self) -> Element:

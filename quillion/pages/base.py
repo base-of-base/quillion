@@ -4,6 +4,7 @@ from typing import Dict, Optional
 from ..components.base import Component
 from ..ui.element import Element
 
+
 class PageMeta(type):
     _registry: Dict[str, "Page"] = {}
 
@@ -11,6 +12,7 @@ class PageMeta(type):
         if hasattr(cls, "router") and cls.router:
             PageMeta._registry[cls.router] = cls
         super().__init__(name, bases, attrs)
+
 
 class Page(metaclass=PageMeta):
     router: str = None
@@ -61,6 +63,7 @@ class Page(metaclass=PageMeta):
                 if cls not in cached_instance.css_classes:
                     cached_instance.css_classes.append(cls)
             if not cached_instance._rerender_callback:
+
                 async def rerender_callback():
                     app = Quillion._instance
                     if app and app.websocket:

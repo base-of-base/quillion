@@ -1,27 +1,25 @@
-from quillion import app, page, State
-from quillion.ui import box, text, button, image
+from quillion import app, page, box, text, button, image, State
+
 
 class AppState(State):
     count: int = 0
 
+
 @page("/")
 def home():
     return box(
-        text(
-            f"Счёт: {AppState.count}",
-            size="2rem",
-            color="green"
-        ),
+        text(f"Счёт: {AppState.count}", size="2rem", color="green"),
         box(
             button("+", on_click=lambda: AppState.set(count=AppState.count + 1)),
             button("-", on_click=lambda: AppState.set(count=AppState.count - 1)),
-            flex_direction="row",
-            gap="10px"
+            direction="row",
+            gap="10px",
         ),
         padding="20px",
         background="",
-        border_radius="10px"
+        border_radius="10px",
     )
+
 
 @page("/about")
 def about():
@@ -33,7 +31,8 @@ def about():
         padding="30px",
         background="white",
         border_radius="lg",
-        shadow="md"
+        shadow="md",
     )
+
 
 app.start(port=1337)

@@ -7,6 +7,7 @@ from .server import ServerConnection
 from ..pages.base import Page, PageMeta
 from ..ui.element import Element
 
+
 class Quillion:
     _instance = None
 
@@ -15,7 +16,7 @@ class Quillion:
         self.callbacks: Dict[str, callable] = {}
         self.current_page: Optional[Page] = None
         self.websocket = None
-        self._state_instances: Dict[type, 'State'] = {}
+        self._state_instances: Dict[type, "State"] = {}
         self.style_tag_id = "quillion-dynamic-styles"
         self._current_rendering_page: Optional[Page] = None
         self.crypto = Crypto()

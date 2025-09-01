@@ -2,6 +2,7 @@ from typing import Optional, Dict, List, Any, Callable
 import uuid
 import re
 
+
 # Этот класс отвечает за преобразование имен свойств из snake_case в kebab-case.
 # Он будет использоваться для динамических стилей.
 class StyleProperty:
@@ -11,9 +12,10 @@ class StyleProperty:
 
     def to_css_properties_dict(self) -> Dict[str, str]:
         # Преобразуем имя свойства из snake_case в kebab-case
-        css_key = re.sub(r'([A-Z])', r'-\1', self._key).lower().replace('_', '-')
+        css_key = re.sub(r"([A-Z])", r"-\1", self._key).lower().replace("_", "-")
         css_value = str(self._value)
         return {css_key: css_value}
+
 
 class Element:
     def __init__(
@@ -34,7 +36,7 @@ class Element:
         self.inline_style_properties = inline_style_properties or {}
         self.css_classes = classes or []
         self.key = key
-        self.style_properties: List['StyleProperty'] = []
+        self.style_properties: List["StyleProperty"] = []
 
         # Обрабатываем все переданные именованные аргументы как динамические стили
         # и добавляем их в список свойств.
@@ -61,7 +63,7 @@ class Element:
             cb_id = str(uuid.uuid4())
             app.callbacks[cb_id] = self.on_click
             data["attributes"]["data-callback-id"] = cb_id
-        
+
         if self.inline_style_properties or self.style_properties:
             style_dict = {}
             style_dict.update(self.inline_style_properties)
@@ -69,12 +71,12 @@ class Element:
                 style_dict.update(prop.to_css_properties_dict())
             css_parts = [f"{k.replace('_', '-')}: {v};" for k, v in style_dict.items()]
             data["attributes"]["style"] = " ".join(css_parts)
-        
+
         if self.css_classes:
             data["attributes"]["class"] = " ".join(self.css_classes)
         if self.key:
             data["key"] = self.key
-        
+
         for child in self.children:
             if isinstance(child, Component) and child.key:
                 if app._current_rendering_page:
