@@ -1,6 +1,19 @@
 from typing import Optional, Dict, List, Any, Callable
 import uuid
+import re
 
+# Этот класс отвечает за преобразование имен свойств из snake_case в kebab-case.
+# Он будет использоваться для динамических стилей.
+class StyleProperty:
+    def __init__(self, key: str, value):
+        self._key = key
+        self._value = value
+
+    def to_css_properties_dict(self) -> Dict[str, str]:
+        # Преобразуем имя свойства из snake_case в kebab-case
+        css_key = re.sub(r'([A-Z])', r'-\1', self._key).lower().replace('_', '-')
+        css_value = str(self._value)
+        return {css_key: css_value}
 
 class Element:
     def __init__(
@@ -11,6 +24,7 @@ class Element:
         inline_style_properties: Optional[Dict[str, str]] = None,
         classes: Optional[List[str]] = None,
         key: Optional[str] = None,
+        **kwargs: Any,  # Добавляем **kwargs для приема любых динамических стилей
     ):
         self.tag = tag
         self.text = text
@@ -20,6 +34,12 @@ class Element:
         self.inline_style_properties = inline_style_properties or {}
         self.css_classes = classes or []
         self.key = key
+        self.style_properties: List['StyleProperty'] = []
+
+        # Обрабатываем все переданные именованные аргументы как динамические стили
+        # и добавляем их в список свойств.
+        for prop_key, prop_value in kwargs.items():
+            self.style_properties.append(StyleProperty(prop_key, prop_value))
 
     def append(self, *children: "Element"):
         for child in children:
@@ -30,12 +50,8 @@ class Element:
         if class_name not in self.css_classes:
             self.css_classes.append(class_name)
 
-    def _convert_inline_style_to_css_string(self) -> str:
-        css_parts = []
-        for k, v in self.inline_style_properties.items():
-            css_key = k.replace("_", "-")
-            css_parts.append(f"{css_key}: {v};")
-        return " ".join(css_parts)
+    # Метод _convert_inline_style_to_css_string был удален,
+    # так как его логика уже интегрирована в to_dict.
 
     def to_dict(self, app) -> Dict[str, Any]:
         from ..components import Component
@@ -45,12 +61,20 @@ class Element:
             cb_id = str(uuid.uuid4())
             app.callbacks[cb_id] = self.on_click
             data["attributes"]["data-callback-id"] = cb_id
-        if self.inline_style_properties:
-            data["attributes"]["style"] = self._convert_inline_style_to_css_string()
+        
+        if self.inline_style_properties or self.style_properties:
+            style_dict = {}
+            style_dict.update(self.inline_style_properties)
+            for prop in self.style_properties:
+                style_dict.update(prop.to_css_properties_dict())
+            css_parts = [f"{k.replace('_', '-')}: {v};" for k, v in style_dict.items()]
+            data["attributes"]["style"] = " ".join(css_parts)
+        
         if self.css_classes:
             data["attributes"]["class"] = " ".join(self.css_classes)
         if self.key:
             data["key"] = self.key
+        
         for child in self.children:
             if isinstance(child, Component) and child.key:
                 if app._current_rendering_page:

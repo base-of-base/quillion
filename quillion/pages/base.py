@@ -1,10 +1,8 @@
 import asyncio
 import uuid
 from typing import Dict, Optional
-from ..core.router import Path
 from ..components.base import Component
 from ..ui.element import Element
-
 
 class PageMeta(type):
     _registry: Dict[str, "Page"] = {}
@@ -13,7 +11,6 @@ class PageMeta(type):
         if hasattr(cls, "router") and cls.router:
             PageMeta._registry[cls.router] = cls
         super().__init__(name, bases, attrs)
-
 
 class Page(metaclass=PageMeta):
     router: str = None
@@ -39,6 +36,8 @@ class Page(metaclass=PageMeta):
     def _get_or_create_component_instance(
         self, new_component_declaration: Component
     ) -> Component:
+        from ..core.app import Quillion
+
         key = new_component_declaration.key
         if not key:
             return new_component_declaration
@@ -46,10 +45,9 @@ class Page(metaclass=PageMeta):
             self._component_instance_cache[key] = new_component_declaration
 
             async def rerender_callback():
-                if Path._app and Path._app.websocket:
-                    await Path._app.render_current_page(
-                        Path._app.websocket
-                    )
+                app = Quillion._instance
+                if app and app.websocket:
+                    await app.render_current_page(app.websocket)
 
             new_component_declaration._rerender_callback = rerender_callback
         else:
@@ -63,12 +61,10 @@ class Page(metaclass=PageMeta):
                 if cls not in cached_instance.css_classes:
                     cached_instance.css_classes.append(cls)
             if not cached_instance._rerender_callback:
-
                 async def rerender_callback():
-                    if Path._app and Path._app.websocket:
-                        await Path._app.render_current_page(
-                            Path._app.websocket
-                        )
+                    app = Quillion._instance
+                    if app and app.websocket:
+                        await app.render_current_page(app.websocket)
 
                 cached_instance._rerender_callback = rerender_callback
             new_component_declaration = cached_instance

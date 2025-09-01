@@ -1,1 +1,1 @@
-from .decorators import style
+from .decorators import page

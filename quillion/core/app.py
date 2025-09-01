@@ -1,20 +1,21 @@
 import json
 import websockets
 from typing import Dict, Optional
-from .router import Path
 from .crypto import Crypto
 from .messaging import Messaging
 from .server import ServerConnection
 from ..pages.base import Page, PageMeta
 from ..ui.element import Element
 
-
 class Quillion:
+    _instance = None
+
     def __init__(self):
+        Quillion._instance = self
         self.callbacks: Dict[str, callable] = {}
         self.current_page: Optional[Page] = None
         self.websocket = None
-        Path.init(self)
+        self._state_instances: Dict[type, 'State'] = {}
         self.style_tag_id = "quillion-dynamic-styles"
         self._current_rendering_page: Optional[Page] = None
         self.crypto = Crypto()
@@ -23,6 +24,7 @@ class Quillion:
 
     async def handler(self, websocket: websockets.WebSocketServerProtocol):
         self.websocket = websocket
+        self._state_instances = {}  # Reset state for new connection
         initial_path = websocket.path
         try:
             public_key_message = await websocket.recv()
@@ -45,9 +47,12 @@ class Quillion:
                     )
                 except Exception as e:
                     print(f"[{websocket.id}] Error: {e}")
+                    raise
         except Exception as e:
             print(f"[{websocket.id}] Error: {e}")
+            raise
         finally:
+            self._state_instances.clear()  # Clean up state on disconnect
             self.crypto.cleanup(websocket)
 
     async def navigate(self, path: str, websocket: websockets.WebSocketServerProtocol):
