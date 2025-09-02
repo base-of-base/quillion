@@ -9,6 +9,7 @@ from quillion import (
 )
 
 
+
 class AppState(State):
     count: int = 0
 
@@ -28,18 +29,22 @@ def home():
         border_radius="10px",
     )
 
-
 @page("/about")
 def about():
     return box(
-        text("О нас", weight="bold", size="3xl"),
-        text("Мы крутые", color="gray-600"),
-        image("/logo.png", width=100),
-        gap="10px",
-        padding="30px",
+        text("О нас", weight="bold", size="4xl", color="indigo-700"),
+        text("Ok", size="lg", color="gray-600"),
+        image("/logo.png", width=120),
+        button("На главную", on_click=lambda: app.redirect("/"),
+               background="indigo-600", color="white", padding="15px 30px", border_radius="xl"),
+        gap="20px",
+        align="center",
+        padding="50px",
         background="white",
-        border_radius="lg",
-        shadow="md",
+        border_radius="2xl",
+        shadow="2xl",
+        height="100vh",
+        justify="center"
     )
 
 

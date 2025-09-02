@@ -56,12 +56,17 @@ class Quillion:
             self._state_instances.clear()  # Clean up state on disconnect
             self.crypto.cleanup(websocket)
 
-    async def navigate(self, path: str, websocket: websockets.WebSocketServerProtocol):
+    async def navigate(self, path: str, websocket: websockets.WebSocketServerProtocol = None):
         page_cls = PageMeta._registry.get(path)
         if page_cls:
             if not self.current_page or self.current_page.__class__ != page_cls:
                 self.current_page = page_cls()
             await self.render_current_page(websocket)
+
+    def redirect(self, path: str):
+        if self.websocket:
+            import asyncio
+            asyncio.create_task(self.navigate(path, self.websocket))
 
     def _collect_css_rules(self) -> Dict[str, Dict[str, str]]:
         from ..styles.base import StyleMeta
