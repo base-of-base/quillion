@@ -9,7 +9,6 @@ from quillion import (
 )
 
 
-
 class AppState(State):
     count: int = 0
 
@@ -17,34 +16,212 @@ class AppState(State):
 @page("/")
 def home():
     return box(
-        text(f"Счёт: {AppState.count}", size="2rem", color="green"),
         box(
-            button("+", on_click=lambda: AppState.set(count=AppState.count + 1)),
-            button("-", on_click=lambda: AppState.set(count=AppState.count - 1)),
-            direction="row",
-            gap="10px",
+            box(
+                text("COUNTER SYSTEM", 
+                     size="0.85rem", 
+                     color="#666",
+                     weight="600",
+                     letter_spacing="2px",
+                     text_transform="uppercase",
+                     margin_bottom="5px"),
+                
+                text(f"{AppState.count:04d}", 
+                     size="3.5rem", 
+                     color="#2c3e50",
+                     weight="300",
+                     font_family="'SF Mono', 'Monaco', monospace",
+                     letter_spacing="1px",
+                     background="#f8f9fa",
+                     padding="25px 40px",
+                     border_radius="8px",
+                     border="1px solid #e9ecef",
+                     box_shadow="inset 0 1px 3px rgba(0,0,0,0.03)"),
+                
+                box(
+                    button("+", 
+                           on_click=lambda: AppState.set(count=AppState.count + 1),
+                           background="none",
+                           color="#2c3e50",
+                           border="1px solid #e9ecef",
+                           padding="12px 24px",
+                           border_radius="6px",
+                           font_weight="400",
+                           font_size="1.1rem",
+                           cursor="pointer",
+                           transition="all 0.2s ease",
+                           hover_background="#2c3e50",
+                           hover_color="white",
+                           hover_border_color="#2c3e50"),
+                    
+                    button("−", 
+                           on_click=lambda: AppState.set(count=AppState.count - 1),
+                           background="none",
+                           color="#2c3e50",
+                           border="1px solid #e9ecef",
+                           padding="12px 24px",
+                           border_radius="6px",
+                           font_weight="400",
+                           font_size="1.1rem",
+                           cursor="pointer",
+                           transition="all 0.2s ease",
+                           hover_background="#2c3e50",
+                           hover_color="white",
+                           hover_border_color="#2c3e50"),
+                    
+                    flex_direction="row",
+                    gap="15px",
+                    margin_top="25px"
+                ),
+                
+                align_items="center",
+                gap="20px",
+                flex_direction="column"
+            ),
+            
+            padding="40px",
+            background="white",
+            border_radius="12px",
+            box_shadow="0 4px 20px rgba(0,0,0,0.08)",
+            border="1px solid #f1f3f4",
+            min_width="320px",
+            align_items="center"
         ),
-        padding="20px",
-        background="",
-        border_radius="10px",
+        
+        padding="40px",
+        background="linear-gradient(135deg, #fafbfc 0%, #f4f6f8 100%)",
+        min_height="100vh",
+        display="flex",
+        justify_content="center",
+        align_items="center",
+        flex_direction="column"
     )
 
 @page("/about")
 def about():
     return box(
-        text("О нас", weight="bold", size="4xl", color="indigo-700"),
-        text("Ok", size="lg", color="gray-600"),
-        image("/logo.png", width=120),
-        button("На главную", on_click=lambda: app.redirect("/"),
-               background="indigo-600", color="white", padding="15px 30px", border_radius="xl"),
-        gap="20px",
-        align="center",
-        padding="50px",
-        background="white",
-        border_radius="2xl",
-        shadow="2xl",
-        height="100vh",
-        justify="center"
+        box(
+            box(
+                text("ABOUT", 
+                     size="2rem", 
+                     color="#2c3e50",
+                     weight="300",
+                     letter_spacing="0.5px",
+                     margin_bottom="10px"),
+                
+                text("Enterprise Solutions Platform", 
+                     color="#7f8c8d",
+                     size="0.9rem",
+                     weight="400",
+                     letter_spacing="0.3px",
+                     margin_bottom="30px"),
+                
+                box(
+                    image("./s.svg",
+                          width="280px",
+                          height="280px",
+                          border_radius="4px",
+                          border="1px solid #e9ecef",
+                          background="#fafbfc",
+                          padding="20px"),
+                    
+                    box(
+                        box(
+                            text("CORE FEATURES", 
+                                 size="0.8rem", 
+                                 color="#7f8c8d",
+                                 weight="600",
+                                 text_transform="uppercase",
+                                 letter_spacing="1px",
+                                 margin_bottom="20px"),
+                            
+                            box(
+                                box(
+                                    text("Advanced Architecture", 
+                                         size="1rem", 
+                                         color="#2c3e50",
+                                         weight="400",
+                                         margin_bottom="5px"),
+                                    text("Scalable microservices infrastructure", 
+                                         size="0.85rem", 
+                                         color="#7f8c8d",
+                                         line_height="1.5"),
+                                    padding="20px",
+                                    background="#fafbfc",
+                                    border_radius="6px",
+                                    border="1px solid #f1f3f4",
+                                    hover_background="#2c3e50",
+                                    hover_color="white",
+                                    transition="all 0.2s ease"
+                                ),
+                                
+                                box(
+                                    text("Security First", 
+                                         size="1rem", 
+                                         color="#2c3e50",
+                                         weight="400",
+                                         margin_bottom="5px"),
+                                    text="End-to-end encryption protocols",
+                                    size="0.85rem", 
+                                    color="#7f8c8d",
+                                    line_height="1.5",
+                                    padding="20px",
+                                    background="#fafbfc",
+                                    border_radius="6px",
+                                    border="1px solid #f1f3f4",
+                                    hover_background="#2c3e50",
+                                    hover_color="white",
+                                    transition="all 0.2s ease"
+                                ),
+                                
+                                gap="15px",
+                                margin_bottom="30px"
+                            ),
+                            
+                            button("REQUEST DEMO",
+                                   background="none",
+                                   color="#2c3e50",
+                                   border="1px solid #2c3e50",
+                                   padding="12px 30px",
+                                   border_radius="6px",
+                                   font_weight="400",
+                                   font_size="0.9rem",
+                                   cursor="pointer",
+                                   transition="all 0.2s ease",
+                                   hover_background="#2c3e50",
+                                   hover_color="white",
+                                   letter_spacing="0.5px"),
+                            
+                            gap="20px"
+                        ),
+                        gap="25px"
+                    ),
+                    
+                    flex_direction="row",
+                    gap="50px",
+                    align_items="flex-start",
+                    flex_wrap="wrap"
+                ),
+                
+                gap="25px"
+            ),
+            
+            padding="50px",
+            background="white",
+            border_radius="12px",
+            box_shadow="0 4px 20px rgba(0,0,0,0.08)",
+            border="1px solid #f1f3f4",
+            max_width="1000px",
+            gap="30px"
+        ),
+        
+        padding="40px",
+        background="linear-gradient(135deg, #fafbfc 0%, #f4f6f8 100%)",
+        min_height="100vh",
+        display="flex",
+        justify_content="center",
+        align_items="center",
+        flex_direction="column"
     )
 
 
