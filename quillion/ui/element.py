@@ -3,15 +3,12 @@ import uuid
 import re
 
 
-# Этот класс отвечает за преобразование имен свойств из snake_case в kebab-case.
-# Он будет использоваться для динамических стилей.
 class StyleProperty:
     def __init__(self, key: str, value):
         self._key = key
         self._value = value
 
     def to_css_properties_dict(self) -> Dict[str, str]:
-        # Преобразуем имя свойства из snake_case в kebab-case
         css_key = re.sub(r"([A-Z])", r"-\1", self._key).lower().replace("_", "-")
         css_value = str(self._value)
         return {css_key: css_value}
@@ -26,7 +23,7 @@ class Element:
         inline_style_properties: Optional[Dict[str, str]] = None,
         classes: Optional[List[str]] = None,
         key: Optional[str] = None,
-        **kwargs: Any,  # Добавляем **kwargs для приема любых динамических стилей
+        **kwargs: Any,
     ):
         self.tag = tag
         self.text = text
@@ -38,8 +35,6 @@ class Element:
         self.key = key
         self.style_properties: List["StyleProperty"] = []
 
-        # Обрабатываем все переданные именованные аргументы как динамические стили
-        # и добавляем их в список свойств.
         for prop_key, prop_value in kwargs.items():
             self.style_properties.append(StyleProperty(prop_key, prop_value))
 
@@ -51,9 +46,6 @@ class Element:
     def add_class(self, class_name: str):
         if class_name not in self.css_classes:
             self.css_classes.append(class_name)
-
-    # Метод _convert_inline_style_to_css_string был удален,
-    # так как его логика уже интегрирована в to_dict.
 
     def to_dict(self, app) -> Dict[str, Any]:
         from ..components import Component

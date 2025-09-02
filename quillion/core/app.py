@@ -25,7 +25,7 @@ class Quillion:
 
     async def handler(self, websocket: websockets.WebSocketServerProtocol):
         self.websocket = websocket
-        self._state_instances = {}  # Reset state for new connection
+        self._state_instances = {}
         initial_path = websocket.path
         try:
             public_key_message = await websocket.recv()
@@ -53,7 +53,7 @@ class Quillion:
             print(f"[{websocket.id}] Error: {e}")
             raise
         finally:
-            self._state_instances.clear()  # Clean up state on disconnect
+            self._state_instances.clear()
             self.crypto.cleanup(websocket)
 
     async def navigate(self, path: str, websocket: websockets.WebSocketServerProtocol = None):
