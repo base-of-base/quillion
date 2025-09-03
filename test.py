@@ -5,7 +5,6 @@ class AppState(State):
     count: int = 0
 
 
-
 @page("/")
 def home():
     return container(

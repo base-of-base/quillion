@@ -3,11 +3,7 @@ from .element import Element
 
 
 class Text(Element):
-    def __init__(
-        self,
-        *children,
-        **kwargs
-    ):
+    def __init__(self, *children, **kwargs):
         super().__init__("p", *children, **kwargs)
 
 
