@@ -5,7 +5,6 @@ from .crypto import Crypto
 from .messaging import Messaging
 from .server import ServerConnection
 from ..pages.base import Page, PageMeta
-from ..ui.element import Element
 
 
 class Quillion:
@@ -56,7 +55,9 @@ class Quillion:
             self._state_instances.clear()
             self.crypto.cleanup(websocket)
 
-    async def navigate(self, path: str, websocket: websockets.WebSocketServerProtocol = None):
+    async def navigate(
+        self, path: str, websocket: websockets.WebSocketServerProtocol = None
+    ):
         page_cls = PageMeta._registry.get(path)
         if page_cls:
             if not self.current_page or self.current_page.__class__ != page_cls:
@@ -66,6 +67,7 @@ class Quillion:
     def redirect(self, path: str):
         if self.websocket:
             import asyncio
+
             asyncio.create_task(self.navigate(path, self.websocket))
 
     async def render_current_page(self, websocket: websockets.WebSocketServerProtocol):

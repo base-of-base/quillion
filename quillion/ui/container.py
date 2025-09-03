@@ -10,5 +10,5 @@ class Container(Element):
             self.append(child)
 
 
-def box(*children, **kwargs):
+def container(*children, **kwargs):
     return Container(*children, **kwargs)
