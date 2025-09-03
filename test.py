@@ -1,9 +1,7 @@
-from quillion import app, page, container, text, button, image, State
-
+from quillion import app, page, container, text, button, image, State, Path
 
 class AppState(State):
     count: int = 0
-
 
 @page("/")
 def home():
@@ -90,7 +88,6 @@ def home():
         flex_direction="column",
     )
 
-
 @page("/about")
 def about():
     return container(
@@ -164,10 +161,12 @@ def about():
                                         weight="400",
                                         margin_bottom="5px",
                                     ),
-                                    text="End-to-end encryption protocols",
-                                    size="0.85rem",
-                                    color="#7f8c8d",
-                                    line_height="1.5",
+                                    text(
+                                        "End-to-end encryption protocols",
+                                        size="0.85rem",
+                                        color="#7f8c8d",
+                                        line_height="1.5",
+                                    ),
                                     padding="20px",
                                     background="#fafbfc",
                                     border_radius="6px",
@@ -212,6 +211,54 @@ def about():
             border="1px solid #f1f3f4",
             max_width="1000px",
             gap="30px",
+        ),
+        padding="40px",
+        background="linear-gradient(135deg, #fafbfc 0%, #f4f6f8 100%)",
+        min_height="100vh",
+        display="flex",
+        justify_content="center",
+        align_items="center",
+        flex_direction="column",
+    )
+
+@page("/user-id/{id}")
+def user_page():
+    from quillion import Quillion
+    app = Quillion._instance
+    user_id = app.current_page.params.get("id", "unknown")
+    return container(
+        container(
+            text(
+                f"User Profile: {user_id}",
+                size="2rem",
+                color="#2c3e50",
+                weight="300",
+                letter_spacing="0.5px",
+                margin_bottom="20px",
+            ),
+            button(
+                "Go to Home",
+                on_click=lambda: Path.navigate("/"),
+                background="none",
+                color="#2c3e50",
+                border="1px solid #e9ecef",
+                padding="12px 24px",
+                border_radius="6px",
+                font_weight="400",
+                font_size="1rem",
+                cursor="pointer",
+                transition="all 0.2s ease",
+                hover_background="#2c3e50",
+                hover_color="white",
+            ),
+            padding="40px",
+            background="white",
+            border_radius="12px",
+            box_shadow="0 4px 20px rgba(0,0,0,0.08)",
+            border="1px solid #f1f3f4",
+            align_items="center",
+            gap="20px",
+            flex_direction="column",
         ),
         padding="40px",
         background="linear-gradient(135deg, #fafbfc 0%, #f4f6f8 100%)",

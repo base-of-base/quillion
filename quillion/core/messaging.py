@@ -1,6 +1,7 @@
 import websockets
+import inspect
+import asyncio
 from typing import Dict, Any
-
 
 class Messaging:
     def __init__(self, app):
@@ -14,7 +15,10 @@ class Messaging:
         if inner_action == "callback":
             cb_id = inner_data.get("id")
             if cb_id in self.app.callbacks:
-                self.app.callbacks[cb_id]()
+                cb = self.app.callbacks[cb_id]
+                result = cb()
+                if inspect.isawaitable(result):
+                    await result
                 await self.app.render_current_page(websocket)
         elif inner_action == "navigate":
             await self.app.navigate(inner_data.get("path", "/"), websocket)

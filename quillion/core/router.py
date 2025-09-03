@@ -1,6 +1,5 @@
 import asyncio
-from typing import Optional
-
+from typing import Optional, Dict
 
 class Path:
     _app = None
@@ -10,6 +9,12 @@ class Path:
         cls._app = app
 
     @classmethod
-    def navigate(cls, to: str):
-        if cls._app:
-            asyncio.create_task(cls._app.navigate(to, cls._app.websocket))
+    def navigate(cls, to: str, params: Optional[Dict[str, str]] = None):
+        if cls._app and cls._app.websocket:
+            if params:
+                path = to
+                for key, value in params.items():
+                    path = path.replace(f"{{{key}}}", value)
+            else:
+                path = to
+            asyncio.create_task(cls._app.navigate(path, cls._app.websocket))

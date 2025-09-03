@@ -1,26 +1,33 @@
 import asyncio
 import uuid
-from typing import Dict, Optional
+import re
+from typing import Dict, Optional, Tuple
 from ..components.base import Component
 from ..ui.element import Element
 
-
 class PageMeta(type):
     _registry: Dict[str, "Page"] = {}
+    _dynamic_routes: Dict[str, Tuple[re.Pattern, "Page"]] = {}
 
     def __init__(cls, name, bases, attrs):
         if hasattr(cls, "router") and cls.router:
-            PageMeta._registry[cls.router] = cls
+            if "{" in cls.router and "}" in cls.router:
+                pattern = re.escape(cls.router)
+                pattern = pattern.replace(r"\{", r"(?P<").replace(r"\}", r">[^\\/]+)")
+                cls._regex = re.compile(f"^{pattern}$")
+                PageMeta._dynamic_routes[cls.router] = (cls._regex, cls)
+            else:
+                PageMeta._registry[cls.router] = cls
         super().__init__(name, bases, attrs)
-
 
 class Page(metaclass=PageMeta):
     router: str = None
     _page_class_name: Optional[str] = None
 
-    def __init__(self):
+    def __init__(self, params: Optional[Dict[str, str]] = None):
         self._component_instance_cache: Dict[str, Component] = {}
         self._rendered_component_keys: set[str] = set()
+        self.params = params or {}
 
     def render(self) -> Element:
         raise NotImplementedError
