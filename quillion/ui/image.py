@@ -3,10 +3,9 @@ from .element import Element
 
 
 class Image(Element):
-    def __init__(self, src: str, **kwargs):
-        super().__init__("img", **kwargs)
-        self.attributes["src"] = src
+    def __init__(self, *children, **kwargs):
+        super().__init__("img", *children, **kwargs)
 
 
-def image(src: str, **kwargs):
-    return Image(src, **kwargs)
+def image(*children, **kwargs):
+    return Image(*children, **kwargs)

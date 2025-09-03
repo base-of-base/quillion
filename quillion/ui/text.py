@@ -5,14 +5,11 @@ from .element import Element
 class Text(Element):
     def __init__(
         self,
-        text: str,
-        size: Optional[str] = None,
-        color: Optional[str] = None,
-        weight: Optional[str] = None,
+        *children,
         **kwargs
     ):
-        super().__init__("p", text=text, **kwargs)
+        super().__init__("p", *children, **kwargs)
 
 
-def text(text: str, **kwargs):
-    return Text(text, **kwargs)
+def text(*children, **kwargs):
+    return Text(*children, **kwargs)
