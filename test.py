@@ -222,14 +222,11 @@ def about():
     )
 
 @page("/user-id/{id}")
-def user_page():
-    from quillion import Quillion
-    app = Quillion._instance
-    user_id = app.current_page.params.get("id", "unknown")
+def user_page(id: str):
     return container(
         container(
             text(
-                f"User Profile: {user_id}",
+                f"User Profile: {id}",
                 size="2rem",
                 color="#2c3e50",
                 weight="300",
@@ -268,6 +265,5 @@ def user_page():
         align_items="center",
         flex_direction="column",
     )
-
 
 app.start(port=1337)

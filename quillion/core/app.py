@@ -98,7 +98,7 @@ class Quillion:
         for component_instance in self.current_page._component_instance_cache.values():
             component_instance._reset_hooks()
         try:
-            root_element = self.current_page.render()
+            root_element = self.current_page.render(**self.current_page.params)
             page_class_name = self.current_page.get_page_class_name()
             root_element.add_class(page_class_name)
             tree = root_element.to_dict(self)

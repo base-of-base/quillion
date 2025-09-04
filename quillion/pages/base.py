@@ -29,7 +29,7 @@ class Page(metaclass=PageMeta):
         self._rendered_component_keys: set[str] = set()
         self.params = params or {}
 
-    def render(self) -> Element:
+    def render(self, **params) -> Element:
         raise NotImplementedError
 
     def get_page_class_name(self) -> str:
