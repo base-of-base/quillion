@@ -1,6 +1,7 @@
 import asyncio
 from typing import Optional, Dict
 
+
 class Path:
     _app = None
 

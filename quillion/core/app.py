@@ -9,6 +9,7 @@ from .router import Path
 from ..pages.base import Page, PageMeta
 from ..components import State
 
+
 class Quillion:
     _instance = None
 
@@ -24,7 +25,6 @@ class Quillion:
         self.crypto = Crypto()
         self.messaging = Messaging(self)
         self.server_connection = ServerConnection()
-        # Initialize Path with the app instance
         Path.init(self)
 
     async def handler(self, websocket: websockets.WebSocketServerProtocol):
@@ -63,15 +63,11 @@ class Quillion:
     async def navigate(
         self, path: str, websocket: websockets.WebSocketServerProtocol = None
     ):
-        # Decode the path to handle URL-encoded characters
-        path = re.sub(r'%7B([^%]+)%7D', r'{\1}', path)  # Replace %7Bid%7D with {id}
         path = path.strip()
 
-        # First, try exact match
         page_cls = PageMeta._registry.get(path)
         params = None
         if not page_cls:
-            # Try dynamic routes, handling encoded paths
             for route, (pattern, cls) in PageMeta._dynamic_routes.items():
                 match = pattern.match(path)
                 if match:
@@ -88,6 +84,7 @@ class Quillion:
     def redirect(self, path: str):
         if self.websocket:
             import asyncio
+
             asyncio.create_task(self.navigate(path, self.websocket))
 
     async def render_current_page(self, websocket: websockets.WebSocketServerProtocol):

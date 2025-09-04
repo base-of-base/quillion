@@ -1,7 +1,9 @@
 from quillion import app, page, container, text, button, image, State, Path
 
+
 class AppState(State):
     count: int = 0
+
 
 @page("/")
 def home():
@@ -88,6 +90,7 @@ def home():
         flex_direction="column",
     )
 
+
 @page("/about")
 def about():
     return container(
@@ -108,7 +111,7 @@ def about():
                     weight="400",
                     letter_spacing="0.3px",
                     margin_bottom="30px",
-                ),
+                ), 
                 container(
                     image(
                         "./s.svg",
@@ -221,6 +224,7 @@ def about():
         flex_direction="column",
     )
 
+
 @page("/user-id/{id}")
 def user_page(id: str):
     return container(
@@ -265,5 +269,6 @@ def user_page(id: str):
         align_items="center",
         flex_direction="column",
     )
+
 
 app.start(port=1337)

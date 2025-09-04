@@ -5,6 +5,7 @@ from typing import Dict, Optional, Tuple
 from ..components.base import Component
 from ..ui.element import Element
 
+
 class PageMeta(type):
     _registry: Dict[str, "Page"] = {}
     _dynamic_routes: Dict[str, Tuple[re.Pattern, "Page"]] = {}
@@ -19,6 +20,7 @@ class PageMeta(type):
             else:
                 PageMeta._registry[cls.router] = cls
         super().__init__(name, bases, attrs)
+
 
 class Page(metaclass=PageMeta):
     router: str = None
