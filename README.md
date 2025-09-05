@@ -6,10 +6,12 @@
 
 ### **Getting Started**
 
-1.  **Installation:**
-    `pip install quillion`
+1.  **Install via pip:**
+    ```bash
+    pip install quillion
+    ```
 
-2.  **A Simple "Hello, World!" App:**
+2.  **Create main.py**
     ```python
     from quillion import app, page
     from quillion.components import text
@@ -22,7 +24,9 @@
     ```
 
 3.  **Run the app:**
-    `python main.py`
+    ```bash
+    python main.py
+    ```
 
 -----
 
