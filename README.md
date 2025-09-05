@@ -1,4 +1,4 @@
-# 🪐 Quillion
+# Quillion
 
 **Quillion** is a Python web framework for building fast, reactive, and elegant web applications with minimal effort. It focuses on a component-based, declarative approach, allowing you to create complex UIs and manage application state using pure Python.
 
