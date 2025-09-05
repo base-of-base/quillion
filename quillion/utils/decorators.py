@@ -14,6 +14,7 @@ def page(route: str):
             if inspect.iscoroutinefunction(func):
                 async def render(self, **params):
                     return await func(**params)
+
             else:
                 def render(self, **params):
                     return func(**params)
