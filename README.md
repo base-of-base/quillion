@@ -4,16 +4,6 @@
 
 -----
 
-### **Features**
-
-  * **Pythonic Components:** Define your UI using Python functions that return declarative component objects
-  * **Reactive State Management:** Seamlessly update your UI when application state changes
-  * **Simple Routing:** Create pages and handle dynamic routes with simple decorators
-  * **Built-in Styling:** Style your components directly in Python using a simple and intuitive API
-  * **Pure Python:** Write your entire application, from backend logic to frontend UI, in a single language
-
------
-
 ### **Getting Started**
 
 1.  **Installation:**
