@@ -6,7 +6,7 @@ class AppState(State):
 
 
 @page("/")
-def home():
+async def home():
     return container(
         container(
             container(
@@ -111,7 +111,7 @@ def about():
                     weight="400",
                     letter_spacing="0.3px",
                     margin_bottom="30px",
-                ), 
+                ),
                 container(
                     image(
                         "./s.svg",

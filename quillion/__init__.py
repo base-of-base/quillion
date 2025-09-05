@@ -1,8 +1,11 @@
+import nest_asyncio
 from .core import *
 from .pages import *
 from .ui import *
 from .components import *
 from .utils import *
 from .ui.image import image
+
+nest_asyncio.apply()
 
 app = Quillion()
