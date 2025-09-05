@@ -1,3 +1,4 @@
+import inspect
 import json
 import websockets
 import re
@@ -96,6 +97,11 @@ class Quillion:
             component_instance._reset_hooks()
         try:
             root_element = self.current_page.render(**self.current_page.params)
+
+            # async funcs support. ye looks like cringe but it works
+            if inspect.isawaitable(root_element):
+                root_element = await root_element
+
             page_class_name = self.current_page.get_page_class_name()
             root_element.add_class(page_class_name)
             tree = root_element.to_dict(self)

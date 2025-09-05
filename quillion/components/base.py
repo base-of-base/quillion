@@ -1,24 +1,8 @@
 import asyncio
 import inspect
 from typing import Optional, Dict, Any, Callable, Tuple
-from .state import State, StateMeta
+from .state import State
 from .ui.element import Element
-
-
-class State(metaclass=StateMeta):
-    _rerender_callback: Optional[Callable[[], Any]] = None
-
-    def __init__(self, cls):
-        self._cls = cls
-        self._data = {k: v for k, v in cls._defaults.items()}
-
-    def __getattr__(self, name):
-        if name in self._data:
-            return self._data[name]
-        return super().__getattribute__(name)
-
-    def _set_rerender_callback(self, callback: Callable[[], Any]):
-        self._rerender_callback = callback
 
 
 class Component(Element):

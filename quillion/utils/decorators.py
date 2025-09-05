@@ -1,3 +1,5 @@
+# quillion\utils\decorators.py
+
 from typing import Callable
 import inspect
 import asyncio
@@ -6,16 +8,14 @@ from ..pages.base import Page, PageMeta
 
 def page(route: str):
     def decorator(func: Callable):
-        is_coroutine = inspect.iscoroutinefunction(func)
-
         class GeneratedPage(Page, metaclass=PageMeta):
             router = route
 
-            def render(self, **params):
-                if is_coroutine:
-                    loop = asyncio.get_event_loop()
-                    return loop.run_until_complete(func(**params))
-                else:
+            if inspect.iscoroutinefunction(func):
+                async def render(self, **params):
+                    return await func(**params)
+            else:
+                def render(self, **params):
                     return func(**params)
 
         GeneratedPage.__name__ = func.__name__
