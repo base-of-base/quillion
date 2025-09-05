@@ -5,7 +5,7 @@ from quillion import app, page, Path
 class AppState(State):
     count: int = 0
 
- 
+
 @page("/")
 async def home():
     return container(

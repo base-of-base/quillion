@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any, Callable, Tuple
 from .state import State, StateMeta
 from .ui.element import Element
 
+
 class State(metaclass=StateMeta):
     _rerender_callback: Optional[Callable[[], Any]] = None
 

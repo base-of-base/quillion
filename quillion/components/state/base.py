@@ -3,6 +3,7 @@ import inspect
 from typing import Optional, Any, Callable
 from pydantic import BaseModel, ValidationError
 
+
 class StateMeta(type):
     def __init__(self, name, bases, attrs):
         super().__init__(name, bases, attrs)
