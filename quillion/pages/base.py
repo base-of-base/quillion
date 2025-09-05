@@ -3,7 +3,7 @@ import uuid
 import re
 from typing import Dict, Optional, Tuple
 from ..components.base import Component
-from ..ui.element import Element
+from ..components.ui.element import Element
 
 
 class PageMeta(type):

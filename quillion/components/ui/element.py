@@ -48,7 +48,7 @@ class Element:
             self.css_classes.append(class_name)
 
     def to_dict(self, app) -> Dict[str, Any]:
-        from ..components import Component
+        from ...components import Component
 
         data = {"tag": self.tag, "attributes": {}, "text": self.text, "children": []}
         if self.on_click:
