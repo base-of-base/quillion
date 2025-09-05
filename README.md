@@ -20,8 +20,6 @@
     `pip install quillion`
 
 2.  **A Simple "Hello, World!" App:**
-    Create a file named `app.py`:
-
     ```python
     from quillion import app, page
     from quillion.components import text
@@ -34,7 +32,7 @@
     ```
 
 3.  **Run the app:**
-    `python app.py`
+    `python main.py`
 
 -----
 
