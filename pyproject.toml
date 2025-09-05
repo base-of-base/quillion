@@ -11,25 +11,25 @@ license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/base-of-base/quillion"
 repository = "https://github.com/base-of-base/quillion"
-keywords = [
-    "web",
-    "framework",
-    "async",
-]
+keywords = ["web", "framework", "async"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
-    "Topic :: Communications :: Chat",
-    "Typing :: Typed",
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+  "Topic :: Communications :: Chat",
+  "Typing :: Typed",
 ]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+pydantic = "^2.0"
+cryptography = "^42.0"
+nest-asyncio = "^1.6.0"
+websockets = "^12.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"

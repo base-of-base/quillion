@@ -1,9 +1,10 @@
 import asyncio
 import uuid
 import re
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 from ..components.base import Component
 from ..components.ui.element import Element
+from ..components.ui.container import Container
 
 
 class PageMeta(type):
@@ -31,7 +32,7 @@ class Page(metaclass=PageMeta):
         self._rendered_component_keys: set[str] = set()
         self.params = params or {}
 
-    def render(self, **params) -> Element:
+    def render(self, **params) -> Union[Element, Component]:
         raise NotImplementedError
 
     def get_page_class_name(self) -> str:
