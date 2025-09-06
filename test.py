@@ -1,3 +1,4 @@
+import asyncio
 from quillion.components import container, text, button, image, State
 from quillion import app, page, Path
 
@@ -288,6 +289,77 @@ def user_page(id: str):
         align_items="center",
         flex_direction="column",
     )
-
+ 
+@page("*")
+def not_found():
+    return container(
+        container(
+            container(
+                text(
+                    "404",
+                    size="3.5rem",
+                    color="#2c3e50",
+                    weight="300",
+                    font_family="'SF Mono', 'Monaco', monospace",
+                    letter_spacing="1px",
+                    margin_bottom="10px",
+                ),
+                text(
+                    "PAGE NOT FOUND",
+                    size="0.85rem",
+                    color="#666",
+                    weight="600",
+                    letter_spacing="2px",
+                    text_transform="uppercase",
+                    margin_bottom="20px",
+                ),
+                text(
+                    "The page you are looking for doesn't exist or has been moved",
+                    size="1rem",
+                    color="#7f8c8d",
+                    text_align="center",
+                    line_height="1.5",
+                    margin_bottom="30px",
+                    max_width="400px",
+                ),
+                button(
+                    "Go to Home",
+                    on_click=lambda: Path.navigate("/"),
+                    background="#2c3e50",
+                    color="white",
+                    border="1px solid #2c3e50",
+                    padding="12px 30px",
+                    border_radius="6px",
+                    font_weight="400",
+                    font_size="0.9rem",
+                    cursor="pointer",
+                    transition="all 0.2s ease",
+                    hover_background="white",
+                    hover_color="#2c3e50",
+                    hover_border_color="#2c3e50",
+                    letter_spacing="0.5px",
+                ),
+                align_items="center",
+                gap="15px",
+                flex_direction="column",
+            ),
+            padding="50px 40px",
+            background="white",
+            border_radius="12px",
+            box_shadow="0 4px 20px rgba(0,0,0,0.08)",
+            border="1px solid #f1f3f4",
+            min_width="320px",
+            max_width="480px",
+            align_items="center",
+            text_align="center",
+        ),
+        padding="40px",
+        background="linear-gradient(135deg, #fafbfc 0%, #f4f6f8 100%)",
+        min_height="100vh",
+        display="flex",
+        justify_content="center",
+        align_items="center",
+        flex_direction="column",
+    )
 
 app.start(port=1337)

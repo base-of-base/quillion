@@ -3,12 +3,15 @@ import json
 import websockets
 import re
 from typing import Dict, Optional
+
+from quillion.utils.finder import RouteFinder
 from .crypto import Crypto
 from .messaging import Messaging
 from .server import ServerConnection
 from .router import Path
 from ..pages.base import Page, PageMeta
 from ..components import State
+from ..utils.regex_parser import RegexParser, RouteType
 
 
 class Quillion:
@@ -61,31 +64,21 @@ class Quillion:
             self._state_instances.clear()
             self.crypto.cleanup(websocket)
 
-    async def navigate(
-        self, path: str, websocket: websockets.WebSocketServerProtocol = None
-    ):
-        path = path.strip()
-
-        page_cls = PageMeta._registry.get(path)
-        params = None
-        if not page_cls:
-            for route, (pattern, cls) in PageMeta._dynamic_routes.items():
-                match = pattern.match(path)
-                if match:
-                    page_cls = cls
-                    params = match.groupdict()
-                    break
-
+    async def navigate(self, path: str, websocket = None):
+        page_cls, params, _ = RouteFinder.find_route(path)
+        
         if page_cls and websocket:
             if not self.current_page or self.current_page.__class__ != page_cls:
-                self.current_page = page_cls(params=params)
+                self.current_page = page_cls(params=params or {})
             self.current_path = path
             await self.render_current_page(websocket)
+        else:
+            print(f"[{websocket.id}] No matching route for path: {path}")
+
 
     def redirect(self, path: str):
         if self.websocket:
             import asyncio
-
             asyncio.create_task(self.navigate(path, self.websocket))
 
     async def render_current_page(self, websocket: websockets.WebSocketServerProtocol):
@@ -101,7 +94,7 @@ class Quillion:
         try:
             root_element = self.current_page.render(**self.current_page.params)
 
-            # async funcs support. ye looks like cringe but it works
+            # async funcs support. looks like cringe but it works
             if inspect.isawaitable(root_element):
                 root_element = await root_element
 
@@ -128,5 +121,5 @@ class Quillion:
         finally:
             self._current_rendering_page = None
 
-    def start(self, host="0.0.0.0", port=8080):
+    def start(self, host="0.0.0.0", port=1337):
         self.server_connection.start(self.handler, host, port)
