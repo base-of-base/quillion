@@ -73,7 +73,7 @@ class Quillion:
             self.current_path = path
             await self.render_current_page(websocket)
         else:
-            print(f"[{websocket.id}] No matching route for path: {path}")
+            print(f"[{websocket.id}] Received unknow path: {path}")
 
     def redirect(self, path: str):
         if self.websocket:
