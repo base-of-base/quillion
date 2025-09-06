@@ -64,9 +64,9 @@ class Quillion:
             self._state_instances.clear()
             self.crypto.cleanup(websocket)
 
-    async def navigate(self, path: str, websocket = None):
+    async def navigate(self, path: str, websocket=None):
         page_cls, params, _ = RouteFinder.find_route(path)
-        
+
         if page_cls and websocket:
             if not self.current_page or self.current_page.__class__ != page_cls:
                 self.current_page = page_cls(params=params or {})
@@ -75,10 +75,10 @@ class Quillion:
         else:
             print(f"[{websocket.id}] No matching route for path: {path}")
 
-
     def redirect(self, path: str):
         if self.websocket:
             import asyncio
+
             asyncio.create_task(self.navigate(path, self.websocket))
 
     async def render_current_page(self, websocket: websockets.WebSocketServerProtocol):

@@ -7,6 +7,7 @@ from ..components.ui.element import Element
 from ..components.ui.container import Container
 from ..utils import RegexParser, RouteType
 
+
 class PageMeta(type):
     _registry: Dict[str, Tuple["Page", int]] = {}
     _dynamic_routes: Dict[str, Tuple[re.Pattern, "Page", int]] = {}
@@ -16,19 +17,20 @@ class PageMeta(type):
         if hasattr(cls, "router") and cls.router:
             priority = getattr(cls, "_priority", 0)
             cls._original_router = cls.router
-            
+
             regex_pattern, route_type = RegexParser.compile_route(cls.router)
             cls._regex = regex_pattern
             cls._route_type = route_type
-            
+
             if route_type in [RouteType.REGEX_PATTERN, RouteType.REGEX_STRING]:
                 PageMeta._regex_routes[regex_pattern] = (cls, priority)
             elif route_type in [RouteType.DYNAMIC, RouteType.CATCH_ALL]:
                 PageMeta._dynamic_routes[cls.router] = (regex_pattern, cls, priority)
             else:  # RouteType.STATIC
                 PageMeta._registry[cls.router] = (cls, priority)
-                
+
         super().__init__(name, bases, attrs)
+
 
 class Page(metaclass=PageMeta):
     router: str = None
@@ -46,7 +48,7 @@ class Page(metaclass=PageMeta):
     def get_page_class_name(self) -> str:
         if self._page_class_name is None:
             clean_router = RegexParser.get_clean_class_name(
-                getattr(self, '_original_router', self.router)
+                getattr(self, "_original_router", self.router)
             )
             self._page_class_name = (
                 f"quillion-page-{clean_router}-{uuid.uuid4().hex[:6]}"

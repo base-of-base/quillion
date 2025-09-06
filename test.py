@@ -289,7 +289,8 @@ def user_page(id: str):
         align_items="center",
         flex_direction="column",
     )
- 
+
+
 @page("*")
 def not_found():
     return container(
@@ -361,5 +362,6 @@ def not_found():
         align_items="center",
         flex_direction="column",
     )
+
 
 app.start(port=1337)
