@@ -15,9 +15,12 @@ def page(route: Union[str, Pattern], priority: int = 0):
             _priority = priority
 
             if is_async:
+
                 async def render(self, **params):
                     return await validated_func(**params)
+
             else:
+
                 def render(self, **params):
                     return validated_func(**params)
 
