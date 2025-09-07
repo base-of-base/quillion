@@ -65,6 +65,18 @@ class Quillion:
             self.crypto.cleanup(websocket)
 
     async def navigate(self, path: str, websocket=None):
+        if path.startswith("http://") or path.startswith("https://"):
+             print(path)
+             content_message_for_encryption = {
+                  "action": "redirect",
+                  "url": path,
+            }
+             message_to_client = self.crypto.encrypt_response(
+                  websocket, content_message_for_encryption
+            )
+             await websocket.send(json.dumps(message_to_client))
+             return
+        
         page_cls, params, _ = RouteFinder.find_route(path)
 
         if page_cls and websocket:
