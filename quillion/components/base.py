@@ -1,8 +1,23 @@
 import asyncio
 import inspect
-from typing import Optional, Dict, Any, Callable, Tuple
+from typing import Optional, Dict, Any, Callable, Tuple, List
 from .state import State
 from .ui.element import Element
+
+
+class CSS:
+    def __init__(self, files: List[str]):
+        self.files = files
+    
+    def to_dict(self, app) -> Dict[str, Any]:
+        return {
+            "tag": "link",
+            "attributes": {
+                "rel": "stylesheet",
+                "href": self.files[0] if self.files else ""
+            },
+            "children": []
+        }
 
 
 class Component(Element):

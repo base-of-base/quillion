@@ -23,6 +23,7 @@ class Element:
         inline_style_properties: Optional[Dict[str, str]] = None,
         classes: Optional[List[str]] = None,
         key: Optional[str] = None,
+        class_name: Optional[str] = None,
         **kwargs: Any,
     ):
         self.tag = tag
@@ -34,6 +35,9 @@ class Element:
         self.css_classes = classes or []
         self.key = key
         self.style_properties: List["StyleProperty"] = []
+
+        if class_name:
+            self.css_classes.append(class_name)
 
         for prop_key, prop_value in kwargs.items():
             self.style_properties.append(StyleProperty(prop_key, prop_value))
@@ -48,8 +52,11 @@ class Element:
             self.css_classes.append(class_name)
 
     def to_dict(self, app) -> Dict[str, Any]:
-        from ...components import Component
-
+        from ...components import CSS
+        
+        if isinstance(self, CSS):
+            return self.to_dict(app)
+            
         data = {"tag": self.tag, "attributes": {}, "text": self.text, "children": []}
         if self.on_click:
             cb_id = str(uuid.uuid4())
@@ -70,16 +77,10 @@ class Element:
             data["key"] = self.key
 
         for child in self.children:
-            if isinstance(child, Component) and child.key:
-                if app._current_rendering_page:
-                    resolved_child_instance = (
-                        app._current_rendering_page._get_or_create_component_instance(
-                            child
-                        )
-                    )
-                    data["children"].append(resolved_child_instance.to_dict(app))
-                else:
-                    data["children"].append(child.to_dict(app))
-            else:
+            if isinstance(child, CSS):
                 data["children"].append(child.to_dict(app))
+            elif hasattr(child, 'to_dict'):
+                data["children"].append(child.to_dict(app))
+            else:
+                data["children"].append(child)
         return data

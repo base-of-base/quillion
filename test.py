@@ -1,367 +1,120 @@
 import asyncio
 from quillion.components import container, text, button, image, State
-from quillion import app, page, Path
+from quillion import app, page, Path, css
 
+css(["index.css"])
 
 class AppState(State):
     count: int = 0
-
 
 @page("/")
 async def home():
     return container(
         container(
             container(
-                text(
-                    "COUNTER SYSTEM",
-                    size="0.85rem",
-                    color="#666",
-                    weight="600",
-                    letter_spacing="2px",
-                    text_transform="uppercase",
-                    margin_bottom="5px",
-                ),
-                text(
-                    f"{AppState.count:04d}",
-                    size="3.5rem",
-                    color="#2c3e50",
-                    weight="300",
-                    font_family="'SF Mono', 'Monaco', monospace",
-                    letter_spacing="1px",
-                    background="#f8f9fa",
-                    padding="25px 40px",
-                    border_radius="8px",
-                    border="1px solid #e9ecef",
-                    box_shadow="inset 0 1px 3px rgba(0,0,0,0.03)",
-                ),
+                text("COUNTER SYSTEM", class_name="counter-title"),
+                text(f"{AppState.count:04d}", class_name="counter-display"),
                 container(
                     button(
                         "+",
                         on_click=lambda: AppState.set(count=AppState.count + 1),
-                        background="none",
-                        color="#2c3e50",
-                        border="1px solid #e9ecef",
-                        padding="12px 24px",
-                        border_radius="6px",
-                        font_weight="400",
-                        font_size="1.1rem",
-                        cursor="pointer",
-                        transition="all 0.2s ease",
-                        hover_background="#2c3e50",
-                        hover_color="white",
-                        hover_border_color="#2c3e50",
+                        class_name="counter-btn"
                     ),
                     button(
                         "−",
                         on_click=lambda: AppState.set(count=AppState.count - 1),
-                        background="none",
-                        color="#2c3e50",
-                        border="1px solid #e9ecef",
-                        padding="12px 24px",
-                        border_radius="6px",
-                        font_weight="400",
-                        font_size="1.1rem",
-                        cursor="pointer",
-                        transition="all 0.2s ease",
-                        hover_background="#2c3e50",
-                        hover_color="white",
-                        hover_border_color="#2c3e50",
+                        class_name="counter-btn"
                     ),
-                    flex_direction="row",
-                    gap="15px",
-                    margin_top="25px",
+                    class_name="counter-buttons"
                 ),
                 button(
                     "Go to About",
                     on_click=lambda: Path.navigate("/about"),
-                    background="#2c3e50",
-                    color="white",
-                    border="1px solid #2c3e50",
-                    padding="12px 24px",
-                    border_radius="6px",
-                    font_weight="400",
-                    font_size="0.9rem",
-                    cursor="pointer",
-                    transition="all 0.2s ease",
-                    hover_background="white",
-                    hover_color="#2c3e50",
-                    hover_border_color="#2c3e50",
-                    margin_top="15px",
+                    class_name="nav-btn"
                 ),
-                align_items="center",
-                gap="20px",
-                flex_direction="column",
+                class_name="counter-container"
             ),
-            padding="40px",
-            background="white",
-            border_radius="12px",
-            box_shadow="0 4px 20px rgba(0,0,0,0.08)",
-            border="1px solid #f1f3f4",
-            min_width="320px",
-            align_items="center",
+            class_name="counter-card"
         ),
-        padding="40px",
-        background="linear-gradient(135deg, #fafbfc 0%, #f4f6f8 100%)",
-        min_height="100vh",
-        display="flex",
-        justify_content="center",
-        align_items="center",
-        flex_direction="column",
+        class_name="page-container"
     )
-
 
 @page("/about")
 def about():
     return container(
         container(
             container(
-                text(
-                    "ABOUT",
-                    size="2rem",
-                    color="#2c3e50",
-                    weight="300",
-                    letter_spacing="0.5px",
-                    margin_bottom="10px",
-                ),
-                text(
-                    "Enterprise Solutions Platform",
-                    color="#7f8c8d",
-                    size="0.9rem",
-                    weight="400",
-                    letter_spacing="0.3px",
-                    margin_bottom="30px",
-                ),
+                text("ABOUT", class_name="about-title"),
+                text("Enterprise Solutions Platform", class_name="about-subtitle"),
                 container(
-                    image(
-                        "./s.svg",
-                        width="280px",
-                        height="280px",
-                        border_radius="4px",
-                        border="1px solid #e9ecef",
-                        background="#fafbfc",
-                        padding="20px",
-                    ),
+                    image("./s.svg", class_name="about-image"),
                     container(
                         container(
-                            text(
-                                "CORE FEATURES",
-                                size="0.8rem",
-                                color="#7f8c8d",
-                                weight="600",
-                                text_transform="uppercase",
-                                letter_spacing="1px",
-                                margin_bottom="20px",
-                            ),
+                            text("CORE FEATURES", class_name="features-title"),
                             container(
                                 container(
-                                    text(
-                                        "Advanced Architecture",
-                                        size="1rem",
-                                        color="#2c3e50",
-                                        weight="400",
-                                        margin_bottom="5px",
-                                    ),
-                                    text(
-                                        "Scalable microservices infrastructure",
-                                        size="0.85rem",
-                                        color="#7f8c8d",
-                                        line_height="1.5",
-                                    ),
-                                    padding="20px",
-                                    background="#fafbfc",
-                                    border_radius="6px",
-                                    border="1px solid #f1f3f4",
-                                    hover_background="#2c3e50",
-                                    hover_color="white",
-                                    transition="all 0.2s ease",
+                                    text("Advanced Architecture", class_name="feature-title"),
+                                    text("Scalable microservices infrastructure", class_name="feature-desc"),
+                                    class_name="feature-card"
                                 ),
                                 container(
-                                    text(
-                                        "Security First",
-                                        size="1rem",
-                                        color="#2c3e50",
-                                        weight="400",
-                                        margin_bottom="5px",
-                                    ),
-                                    text(
-                                        "End-to-end encryption protocols",
-                                        size="0.85rem",
-                                        color="#7f8c8d",
-                                        line_height="1.5",
-                                    ),
-                                    padding="20px",
-                                    background="#fafbfc",
-                                    border_radius="6px",
-                                    border="1px solid #f1f3f4",
-                                    hover_background="#2c3e50",
-                                    hover_color="white",
-                                    transition="all 0.2s ease",
+                                    text("Security First", class_name="feature-title"),
+                                    text("End-to-end encryption protocols", class_name="feature-desc"),
+                                    class_name="feature-card"
                                 ),
-                                gap="15px",
-                                margin_bottom="30px",
+                                class_name="features-grid"
                             ),
                             button(
                                 "Go to Home",
                                 on_click=lambda: Path.navigate("/"),
-                                background="none",
-                                color="#2c3e50",
-                                border="1px solid #2c3e50",
-                                padding="12px 30px",
-                                border_radius="6px",
-                                font_weight="400",
-                                font_size="0.9rem",
-                                cursor="pointer",
-                                transition="all 0.2s ease",
-                                hover_background="#2c3e50",
-                                hover_color="white",
-                                letter_spacing="0.5px",
+                                class_name="nav-btn"
                             ),
-                            gap="20px",
+                            class_name="features-content"
                         ),
-                        gap="25px",
+                        class_name="features-container"
                     ),
-                    flex_direction="row",
-                    gap="50px",
-                    align_items="flex-start",
-                    flex_wrap="wrap",
+                    class_name="about-content"
                 ),
-                gap="25px",
+                class_name="about-inner"
             ),
-            padding="50px",
-            background="white",
-            border_radius="12px",
-            box_shadow="0 4px 20px rgba(0,0,0,0.08)",
-            border="1px solid #f1f3f4",
-            max_width="1000px",
-            gap="30px",
+            class_name="about-card"
         ),
-        padding="40px",
-        background="linear-gradient(135deg, #fafbfc 0%, #f4f6f8 100%)",
-        min_height="100vh",
-        display="flex",
-        justify_content="center",
-        align_items="center",
-        flex_direction="column",
+        class_name="page-container"
     )
-
 
 @page("/user-id/{id}")
 def user_page(id: str):
     return container(
         container(
-            text(
-                f"User Profile: {id}",
-                size="2rem",
-                color="#2c3e50",
-                weight="300",
-                letter_spacing="0.5px",
-                margin_bottom="20px",
-            ),
+            text(f"User Profile: {id}", class_name="user-title"),
             button(
                 "Go to Home",
                 on_click=lambda: Path.navigate("/"),
-                background="none",
-                color="#2c3e50",
-                border="1px solid #e9ecef",
-                padding="12px 24px",
-                border_radius="6px",
-                font_weight="400",
-                font_size="1rem",
-                cursor="pointer",
-                transition="all 0.2s ease",
-                hover_background="#2c3e50",
-                hover_color="white",
+                class_name="nav-btn"
             ),
-            padding="40px",
-            background="white",
-            border_radius="12px",
-            box_shadow="0 4px 20px rgba(0,0,0,0.08)",
-            border="1px solid #f1f3f4",
-            align_items="center",
-            gap="20px",
-            flex_direction="column",
+            class_name="user-card"
         ),
-        padding="40px",
-        background="linear-gradient(135deg, #fafbfc 0%, #f4f6f8 100%)",
-        min_height="100vh",
-        display="flex",
-        justify_content="center",
-        align_items="center",
-        flex_direction="column",
+        class_name="page-container"
     )
-
 
 @page("*")
 def not_found():
     return container(
         container(
             container(
-                text(
-                    "404",
-                    size="3.5rem",
-                    color="#2c3e50",
-                    weight="300",
-                    font_family="'SF Mono', 'Monaco', monospace",
-                    letter_spacing="1px",
-                    margin_bottom="10px",
-                ),
-                text(
-                    "PAGE NOT FOUND",
-                    size="0.85rem",
-                    color="#666",
-                    weight="600",
-                    letter_spacing="2px",
-                    text_transform="uppercase",
-                    margin_bottom="20px",
-                ),
-                text(
-                    "The page you are looking for doesn't exist or has been moved",
-                    size="1rem",
-                    color="#7f8c8d",
-                    text_align="center",
-                    line_height="1.5",
-                    margin_bottom="30px",
-                    max_width="400px",
-                ),
+                text("404", class_name="notfound-code"),
+                text("PAGE NOT FOUND", class_name="notfound-title"),
+                text("The page you are looking for doesn't exist or has been moved", class_name="notfound-desc"),
                 button(
                     "Go to Home",
                     on_click=lambda: Path.navigate("/"),
-                    background="#2c3e50",
-                    color="white",
-                    border="1px solid #2c3e50",
-                    padding="12px 30px",
-                    border_radius="6px",
-                    font_weight="400",
-                    font_size="0.9rem",
-                    cursor="pointer",
-                    transition="all 0.2s ease",
-                    hover_background="white",
-                    hover_color="#2c3e50",
-                    hover_border_color="#2c3e50",
-                    letter_spacing="0.5px",
+                    class_name="nav-btn"
                 ),
-                align_items="center",
-                gap="15px",
-                flex_direction="column",
+                class_name="notfound-content"
             ),
-            padding="50px 40px",
-            background="white",
-            border_radius="12px",
-            box_shadow="0 4px 20px rgba(0,0,0,0.08)",
-            border="1px solid #f1f3f4",
-            min_width="320px",
-            max_width="480px",
-            align_items="center",
-            text_align="center",
+            class_name="notfound-card"
         ),
-        padding="40px",
-        background="linear-gradient(135deg, #fafbfc 0%, #f4f6f8 100%)",
-        min_height="100vh",
-        display="flex",
-        justify_content="center",
-        align_items="center",
-        flex_direction="column",
+        class_name="page-container"
     )
-
 
 app.start(port=1337)
