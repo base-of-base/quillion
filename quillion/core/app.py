@@ -37,8 +37,8 @@ class Quillion:
     def _load_css_file(self, css_file: str) -> str:
         if css_file in self._css_cache:
             return self._css_cache[css_file]
-        
-        with open(css_file, 'r', encoding='utf-8') as f:
+
+        with open(css_file, "r", encoding="utf-8") as f:
             content = f.read()
             self._css_cache[css_file] = content
             return content
@@ -129,20 +129,20 @@ class Quillion:
 
             page_class_name = self.current_page.get_page_class_name()
             root_element.add_class(page_class_name)
-            
+
             css_content = ""
             for css_file in self.external_css_files:
                 css_content += self._load_css_file(css_file) + "\n"
-            
+
             style_element = {
                 "tag": "style",
                 "attributes": {},
                 "text": css_content,
-                "children": []
+                "children": [],
             }
-            
+
             tree = root_element.to_dict(self)
-            
+
             content = [style_element, tree]
 
             self.current_page._cleanup_old_component_instances()

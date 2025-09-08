@@ -53,10 +53,10 @@ class Element:
 
     def to_dict(self, app) -> Dict[str, Any]:
         from ...components import CSS
-        
+
         if isinstance(self, CSS):
             return self.to_dict(app)
-            
+
         data = {"tag": self.tag, "attributes": {}, "text": self.text, "children": []}
         if self.on_click:
             cb_id = str(uuid.uuid4())
@@ -79,7 +79,7 @@ class Element:
         for child in self.children:
             if isinstance(child, CSS):
                 data["children"].append(child.to_dict(app))
-            elif hasattr(child, 'to_dict'):
+            elif hasattr(child, "to_dict"):
                 data["children"].append(child.to_dict(app))
             else:
                 data["children"].append(child)
