@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "quillion"
-version = "0.1.1"
+version = "0.1.8"
 description = "Modern asynchronous web framework"
 authors = ["anybody"]
 license = "MIT"
@@ -22,6 +22,16 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Application Frameworks",
   "Topic :: Communications :: Chat",
   "Typing :: Typed",
+]
+include = [
+    { path = "quillion/.templates/.q/pkg", format = "sdist" },
+    { path = "quillion/.templates/.q/pkg/*.js", format = "sdist" },
+    { path = "quillion/.templates/.q/pkg/*.wasm", format = "sdist" },
+    { path = "quillion/.templates/.q/pkg/*.ts", format = "sdist" },
+    { path = "quillion/.templates/.q/pkg/*.d.ts", format = "sdist" },
+    { path = "quillion/.templates/.q/pkg/package.json", format = "sdist" },
+    { path = "quillion/.templates/.q/pkg/.gitignore", format = "sdist" },
+    { path = "quillion/.templates/**/*.j2", format = "sdist" }
 ]
 
 [tool.poetry.dependencies]
@@ -44,3 +54,6 @@ uvloop = ["uvloop"]
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.poetry.scripts]
+q = "quillion.cli:app"
