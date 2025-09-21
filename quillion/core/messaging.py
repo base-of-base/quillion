@@ -25,7 +25,7 @@ class Messaging:
             await self.app.navigate(inner_data.get("path", "/"), websocket)
         elif inner_action == "client_error":
             traceback = inner_data.get("error", "")
-            print(f"\n[{websocket.id}] Error occurred")
+            print(f"\n[{{websocket.remote_address[0]}:{websocket.remote_address[1]}}] Error occurred")
             print(traceback)
         else:
-            print(f"[{websocket.id}] Unknown action: {inner_action}")
+            print(f"[{{websocket.remote_address[0]}:{websocket.remote_address[1]}}] Unknown action: {inner_action}")

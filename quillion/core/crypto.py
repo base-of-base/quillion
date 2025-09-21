@@ -76,7 +76,7 @@ class Crypto:
             inner_data = json.loads(decrypted_payload_str)
             return inner_data
         else:
-            print(f"[{websocket.id}] Unknown action: {action}.")
+            print(f"[{{websocket.remote_address[0]}:{websocket.remote_address[1]}}] Unknown action: {action}.")
         return None
 
     def encrypt_response(
