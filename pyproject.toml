@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "quillion"
-version = "0.1.8"
+version = "0.2.1"
 description = "Modern asynchronous web framework"
 authors = ["anybody"]
 license = "MIT"

@@ -1,7 +1,6 @@
 import inspect
 import json
 import websockets
-import re
 import os
 from typing import Dict, Optional, List
 
@@ -10,10 +9,9 @@ from .crypto import Crypto
 from .messaging import Messaging
 from .server import ServerConnection
 from .router import Path
-from ..pages.base import Page, PageMeta
-from ..components import State, CSS
-from ..utils.regex_parser import RegexParser, RouteType
-from ..cli import get_debugger
+from ..pages.base import Page
+from ..components import State
+
 
 class Quillion:
     _instance = None
@@ -34,15 +32,8 @@ class Quillion:
         self.external_css_files: List[str] = []
         self._css_cache: Dict[str, str] = {}
 
-    def _should_log(self) -> bool:
-        debugger = get_debugger()
-        if debugger is None:
-            return True
-        quiet = debugger.is_quiet()
-        return not quiet
-
     def _load_css_file(self, css_file: str) -> str:
-        from ..cli import debugger
+        from quillion_cli.debug.debugger import debugger
 
         if css_file in self._css_cache:
             return self._css_cache[css_file]
@@ -50,16 +41,16 @@ class Quillion:
         with open(css_file, "r", encoding="utf-8") as f:
             content = f.read()
             self._css_cache[css_file] = content
-            if self._should_log():
-                debugger.log_info(f"Loaded styles -> {css_file}")
+            debugger.info(f"Loaded styles -> {css_file}")
             return content
 
     async def handler(self, websocket: websockets.WebSocketServerProtocol):
-        from ..cli import debugger
+        from quillion_cli.debug.debugger import debugger
 
         self.websocket = websocket
-        if self._should_log():
-            debugger.log_info(f"[{websocket.id}] Received new connection from {websocket.remote_address}")
+        if self:
+            connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            debugger.info(f"[{connection_id}] Received new connection from {websocket.remote_address}")
         self._state_instances = {}
         initial_path = websocket.path
         try:
@@ -78,24 +69,24 @@ class Quillion:
                             websocket, inner_data
                         )
                 except json.JSONDecodeError as e:
-                    if self._should_log():
-                        print(
-                        f"[{websocket.id}] json decode error: {e} - msg: {message}. not decrypted?"
+                    connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+                    print(
+                        f"[{connection_id}] json decode error: {e} - msg: {message}. not decrypted?"
                     )
                 except Exception as e:
-                    if self._should_log():
-                        debugger.log_error(f"[{websocket.id}] Error: {e}")
+                    connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+                    debugger.error(f"[{connection_id}] Error: {e}")
                     raise
         except Exception as e:
-            if self._should_log():
-                debugger.log_error(f"[{websocket.id}] Error: {e}")
+            connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            debugger.error(f"[{connection_id}] Error: {e}")
             raise
         finally:
             self._state_instances.clear()
             self.crypto.cleanup(websocket)
 
-    async def navigate(self, path: str, websocket=None):
-        from ..cli import debugger
+    async def navigate(self, path: str, websocket: websockets.WebSocketServerProtocol=None):
+        from quillion_cli.debug.debugger import debugger
         
         if path.startswith("http://") or path.startswith("https://"):
             content_message_for_encryption = {
@@ -113,11 +104,11 @@ class Quillion:
                 self.current_page = page_cls(params=params or {})
             self.current_path = path
             await self.render_current_page(websocket)
-            if self._should_log():
-                debugger.log_info(f"[{websocket.id}] Redirected to: {path}")
+            connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            debugger.info(f"[{connection_id}] Redirected to: {path}")
         else:
-            if self._should_log():
-                debugger.log_error(f"[{websocket.id}] Received unknown path: {path}")
+            connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            debugger.error(f"[{connection_id}] Received unknown path: {path}")
 
     def redirect(self, path: str):
         if self.websocket:
