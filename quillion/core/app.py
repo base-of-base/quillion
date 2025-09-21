@@ -50,7 +50,7 @@ class Quillion:
         self.websocket = websocket
         if self:
             connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
-            debugger.info(f"[{connection_id}] Received new connection from {websocket.remote_address}")
+            debugger.info(f"[{connection_id}] Received new connection")
         self._state_instances = {}
         initial_path = websocket.path
         try:
