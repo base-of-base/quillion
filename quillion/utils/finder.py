@@ -9,9 +9,9 @@ class RouteFinder:
     def _normalize_path(path: str) -> str:
         if not path or path == "/":
             return "/"
-        
-        path = path.strip('/')
-        
+
+        path = path.strip("/")
+
         return f"/{path}"
 
     @staticmethod

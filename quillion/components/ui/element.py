@@ -68,12 +68,12 @@ class Element:
             return self.to_dict(app)
 
         data = {
-            "tag": self.tag, 
+            "tag": self.tag,
             "attributes": self.attributes.copy(),
-            "text": self.text, 
-            "children": []
+            "text": self.text,
+            "children": [],
         }
-        
+
         for event_name, handler in self.event_handlers.items():
             cb_id = str(uuid.uuid4())
             app.callbacks[cb_id] = handler
@@ -90,7 +90,9 @@ class Element:
         if self.css_classes:
             if "class" in data["attributes"]:
                 existing_class = data["attributes"]["class"]
-                data["attributes"]["class"] = f"{existing_class} {' '.join(self.css_classes)}"
+                data["attributes"][
+                    "class"
+                ] = f"{existing_class} {' '.join(self.css_classes)}"
             else:
                 data["attributes"]["class"] = " ".join(self.css_classes)
 
@@ -104,5 +106,5 @@ class Element:
                 data["children"].append(child.to_dict(app))
             else:
                 data["children"].append(child)
-                
+
         return data
