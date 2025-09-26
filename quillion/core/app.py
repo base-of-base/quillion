@@ -49,7 +49,9 @@ class Quillion:
 
         self.websocket = websocket
         if self:
-            connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            connection_id = (
+                f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            )
             debugger.info(f"[{connection_id}] Received new connection")
         self._state_instances = {}
         initial_path = websocket.path
@@ -69,31 +71,41 @@ class Quillion:
                             websocket, inner_data
                         )
                 except json.JSONDecodeError as e:
-                    connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+                    connection_id = (
+                        f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+                    )
                     print(
                         f"[{connection_id}] json decode error: {e} - msg: {message}. not decrypted?"
                     )
                 except Exception as e:
-                    connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+                    connection_id = (
+                        f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+                    )
                     debugger.error(f"[{connection_id}] Error: {e}")
                     raise
         except Exception as e:
-            connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            connection_id = (
+                f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            )
             debugger.error(f"[{connection_id}] Error: {e}")
             raise
         finally:
             self._state_instances.clear()
             self.crypto.cleanup(websocket)
 
-    async def navigate(self, path: str, websocket: websockets.WebSocketServerProtocol=None):
+    async def navigate(
+        self, path: str, websocket: websockets.WebSocketServerProtocol = None
+    ):
         from quillion_cli.debug.debugger import debugger
-        
+
         if path.startswith("http://") or path.startswith("https://"):
             content_message_for_encryption = {
                 "action": "redirect",
                 "url": path,
             }
-            message_to_client = self.crypto.encrypt_response(websocket, content_message_for_encryption)
+            message_to_client = self.crypto.encrypt_response(
+                websocket, content_message_for_encryption
+            )
             await websocket.send(json.dumps(message_to_client))
             return
 
@@ -104,15 +116,20 @@ class Quillion:
                 self.current_page = page_cls(params=params or {})
             self.current_path = path
             await self.render_current_page(websocket)
-            connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            connection_id = (
+                f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            )
             debugger.info(f"[{connection_id}] Redirected to: {path}")
         else:
-            connection_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            connection_id = (
+                f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+            )
             debugger.error(f"[{connection_id}] Received unknown path: {path}")
 
     def redirect(self, path: str):
         if self.websocket:
             import asyncio
+
             asyncio.create_task(self.navigate(path, self.websocket))
 
     async def render_current_page(self, websocket: websockets.WebSocketServerProtocol):
@@ -161,7 +178,9 @@ class Quillion:
                 "content": content,
             }
 
-            message_to_client = self.crypto.encrypt_response(websocket, content_message_for_encryption)
+            message_to_client = self.crypto.encrypt_response(
+                websocket, content_message_for_encryption
+            )
             await websocket.send(json.dumps(message_to_client))
         finally:
             self._current_rendering_page = None
@@ -169,14 +188,14 @@ class Quillion:
     def css(self, files: List[str]):
         self.external_css_files.extend(files)
         return self
-    
+
     def start(self, host="0.0.0.0", port=1337):
-        final_host = os.environ.get('QUILLION_HOST') or host
-        final_port = os.environ.get('QUILLION_PORT') or port
-        
+        final_host = os.environ.get("QUILLION_HOST") or host
+        final_port = os.environ.get("QUILLION_PORT") or port
+
         try:
             final_port = int(final_port)
         except (ValueError, TypeError):
             final_port = port
-        
+
         self.server_connection.start(self.handler, final_host, final_port)

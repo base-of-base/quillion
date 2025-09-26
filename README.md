@@ -1,5 +1,7 @@
 # Quillion
 
+![Q Logo](assets/q_logo.svg)
+
 **Quillion** is a Python web framework for building fast, reactive, and elegant web applications with minimal effort
 
 -----
