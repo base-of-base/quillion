@@ -19,7 +19,7 @@ class Element:
         self,
         tag: str,
         text: Optional[str] = None,
-        on_click: Optional[Callable] = None,
+        event_handlers: Optional[Dict[str, Callable]] = None,
         inline_style_properties: Optional[Dict[str, str]] = None,
         classes: Optional[List[str]] = None,
         key: Optional[str] = None,
@@ -28,7 +28,7 @@ class Element:
     ):
         self.tag = tag
         self.text = text
-        self.on_click = on_click
+        self.event_handlers = event_handlers or {}
         self.children: List["Element"] = []
         self.attributes = {}
         self.inline_style_properties = inline_style_properties or {}
@@ -40,7 +40,11 @@ class Element:
             self.css_classes.append(class_name)
 
         for prop_key, prop_value in kwargs.items():
-            self.style_properties.append(StyleProperty(prop_key, prop_value))
+            if prop_key.startswith("on_") and callable(prop_value):
+                event_name = prop_key[3:]  # "on_" is exile
+                self.event_handlers[event_name] = prop_value
+            else:
+                self.attributes[prop_key] = prop_value
 
     def append(self, *children: "Element"):
         for child in children:
@@ -51,17 +55,29 @@ class Element:
         if class_name not in self.css_classes:
             self.css_classes.append(class_name)
 
+    def add_event_handler(self, event_name: str, handler: Callable):
+        self.event_handlers[event_name] = handler
+
+    def set_attribute(self, name: str, value: Any):
+        self.attributes[name] = value
+
     def to_dict(self, app) -> Dict[str, Any]:
         from ...components import CSS
 
         if isinstance(self, CSS):
             return self.to_dict(app)
 
-        data = {"tag": self.tag, "attributes": {}, "text": self.text, "children": []}
-        if self.on_click:
+        data = {
+            "tag": self.tag, 
+            "attributes": self.attributes.copy(),
+            "text": self.text, 
+            "children": []
+        }
+        
+        for event_name, handler in self.event_handlers.items():
             cb_id = str(uuid.uuid4())
-            app.callbacks[cb_id] = self.on_click
-            data["attributes"]["data-callback-id"] = cb_id
+            app.callbacks[cb_id] = handler
+            data["attributes"][f"on{event_name}"] = cb_id
 
         if self.inline_style_properties or self.style_properties:
             style_dict = {}
@@ -72,7 +88,12 @@ class Element:
             data["attributes"]["style"] = " ".join(css_parts)
 
         if self.css_classes:
-            data["attributes"]["class"] = " ".join(self.css_classes)
+            if "class" in data["attributes"]:
+                existing_class = data["attributes"]["class"]
+                data["attributes"]["class"] = f"{existing_class} {' '.join(self.css_classes)}"
+            else:
+                data["attributes"]["class"] = " ".join(self.css_classes)
+
         if self.key:
             data["key"] = self.key
 
@@ -83,4 +104,5 @@ class Element:
                 data["children"].append(child.to_dict(app))
             else:
                 data["children"].append(child)
+                
         return data

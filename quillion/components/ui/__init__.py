@@ -4,3 +4,4 @@ from .button import button
 from .canvas import canvas
 from .container import container
 from .image import image
+from .input import input
