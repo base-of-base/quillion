@@ -6,7 +6,17 @@ from ..pages.base import PageMeta
 
 class RouteFinder:
     @staticmethod
+    def _normalize_path(path: str) -> str:
+        if not path or path == "/":
+            return "/"
+        
+        path = path.strip('/')
+        
+        return f"/{path}"
+
+    @staticmethod
     def find_route(path: str) -> Tuple[Optional[type], Optional[dict], float]:
+        path = RouteFinder._normalize_path(path)
         path = path.strip()
         page_cls = None
         params = None
