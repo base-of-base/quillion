@@ -45,11 +45,13 @@ class Element:
                 self.event_handlers[event_name] = prop_value
             elif prop_key == "style":
                 if isinstance(prop_value, str):
-                    styles = prop_value.split(';')
+                    styles = prop_value.split(";")
                     for style in styles:
-                        if ':' in style:
-                            css_key, css_value = style.split(':', 1)
-                            self.inline_style_properties[css_key.strip()] = css_value.strip()
+                        if ":" in style:
+                            css_key, css_value = style.split(":", 1)
+                            self.inline_style_properties[css_key.strip()] = (
+                                css_value.strip()
+                            )
             else:
                 self.style_properties.append(StyleProperty(prop_key, prop_value))
 
@@ -87,12 +89,12 @@ class Element:
             data["attributes"][f"on{event_name}"] = cb_id
 
         all_styles = {}
-        
+
         all_styles.update(self.inline_style_properties)
-        
+
         for prop in self.style_properties:
             all_styles.update(prop.to_css_properties_dict())
-        
+
         if all_styles:
             css_parts = [f"{k}: {v};" for k, v in all_styles.items()]
             data["attributes"]["style"] = " ".join(css_parts)
@@ -100,7 +102,9 @@ class Element:
         if self.css_classes:
             if "class" in data["attributes"]:
                 existing_class = data["attributes"]["class"]
-                data["attributes"]["class"] = f"{existing_class} {' '.join(self.css_classes)}"
+                data["attributes"][
+                    "class"
+                ] = f"{existing_class} {' '.join(self.css_classes)}"
             else:
                 data["attributes"]["class"] = " ".join(self.css_classes)
 
