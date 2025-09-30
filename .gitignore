@@ -13,6 +13,7 @@ tree.py
 build/
 develop-eggs/
 dist/
+hi/
 downloads/
 eggs/
 .eggs/

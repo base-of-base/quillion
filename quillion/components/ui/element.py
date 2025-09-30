@@ -41,10 +41,17 @@ class Element:
 
         for prop_key, prop_value in kwargs.items():
             if prop_key.startswith("on_") and callable(prop_value):
-                event_name = prop_key[3:]  # "on_" is exile
+                event_name = prop_key[3:]
                 self.event_handlers[event_name] = prop_value
+            elif prop_key == "style":
+                if isinstance(prop_value, str):
+                    styles = prop_value.split(';')
+                    for style in styles:
+                        if ':' in style:
+                            css_key, css_value = style.split(':', 1)
+                            self.inline_style_properties[css_key.strip()] = css_value.strip()
             else:
-                self.attributes[prop_key] = prop_value
+                self.style_properties.append(StyleProperty(prop_key, prop_value))
 
     def append(self, *children: "Element"):
         for child in children:
@@ -79,20 +86,21 @@ class Element:
             app.callbacks[cb_id] = handler
             data["attributes"][f"on{event_name}"] = cb_id
 
-        if self.inline_style_properties or self.style_properties:
-            style_dict = {}
-            style_dict.update(self.inline_style_properties)
-            for prop in self.style_properties:
-                style_dict.update(prop.to_css_properties_dict())
-            css_parts = [f"{k.replace('_', '-')}: {v};" for k, v in style_dict.items()]
+        all_styles = {}
+        
+        all_styles.update(self.inline_style_properties)
+        
+        for prop in self.style_properties:
+            all_styles.update(prop.to_css_properties_dict())
+        
+        if all_styles:
+            css_parts = [f"{k}: {v};" for k, v in all_styles.items()]
             data["attributes"]["style"] = " ".join(css_parts)
 
         if self.css_classes:
             if "class" in data["attributes"]:
                 existing_class = data["attributes"]["class"]
-                data["attributes"][
-                    "class"
-                ] = f"{existing_class} {' '.join(self.css_classes)}"
+                data["attributes"]["class"] = f"{existing_class} {' '.join(self.css_classes)}"
             else:
                 data["attributes"]["class"] = " ".join(self.css_classes)
 
