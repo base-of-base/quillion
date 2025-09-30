@@ -7,7 +7,7 @@ from typing import Dict, Optional, List
 from quillion.utils.finder import RouteFinder
 from .crypto import Crypto
 from .messaging import Messaging
-from .server import ServerConnection
+from .server import AssetServer, ServerConnection
 from .router import Path
 from ..pages.base import Page
 from ..components import State
@@ -18,9 +18,14 @@ class Quillion:
 
     def __init__(self):
         Quillion._instance = self
-        self.callbacks: Dict[str, callable] = {}
+        self.callbacks: Dict[str, сallable] = {}
         self.current_page: Optional[Page] = None
         self.current_path: Optional[str] = None
+        assets_host = os.environ.get("QUILLION_ASSET_HOST", "localhost")
+        assets_port = os.environ.get("QUILLION_ASSET_PORT", "1338")
+        assets_path = os.environ.get("QUILLION_ASSET_PATH", "")
+        self.asset_server_url = f"http://{assets_host}:{assets_port}".rstrip("/")
+        self.asset_server = AssetServer(assets_dir=assets_path)
         self.websocket = None
         self._state_instances: Dict[type, "State"] = {}
         self.style_tag_id = "quillion-dynamic-styles"
@@ -189,13 +194,16 @@ class Quillion:
         self.external_css_files.extend(files)
         return self
 
-    def start(self, host="0.0.0.0", port=1337):
-        final_host = os.environ.get("QUILLION_HOST") or host
-        final_port = os.environ.get("QUILLION_PORT") or port
+    def start(
+        self, host="0.0.0.0", port=1337, assets_port=1338, assets_host="localhost"
+    ):
+        final_host = os.environ.get("QUILLION_HOST", host)
+        final_port = int(os.environ.get("QUILLION_PORT", port))
+        assets_port = int(os.environ.get("QUILLION_ASSET_PORT", assets_port))
+        assets_host = os.environ.get("QUILLION_ASSET_HOST", assets_host)
 
-        try:
-            final_port = int(final_port)
-        except (ValueError, TypeError):
-            final_port = port
+        self.asset_server_url = f"http://{assets_host}:{assets_port}".rstrip("/")
+
+        self.asset_server.start(host=assets_host, port=assets_port)
 
         self.server_connection.start(self.handler, final_host, final_port)

@@ -1,3 +1,4 @@
+import os
 from typing import Optional, Dict, List, Any, Callable
 import uuid
 import re
@@ -116,3 +117,40 @@ class Element:
                 data["children"].append(child)
 
         return data
+
+
+class MediaElement(Element):
+    def __init__(
+        self,
+        tag: str,
+        src: Optional[str] = None,
+        event_handlers: Optional[Dict[str, Callable]] = None,
+        inline_style_properties: Optional[Dict[str, str]] = None,
+        classes: Optional[List[str]] = None,
+        key: Optional[str] = None,
+        class_name: Optional[str] = None,
+        **kwargs: Any,
+    ):
+        super().__init__(
+            tag,
+            src,
+            event_handlers,
+            inline_style_properties,
+            classes,
+            key,
+            class_name,
+            **kwargs,
+        )
+        self.src = src
+
+    def to_dict(self, app) -> Dict[str, Any]:
+        result = super().to_dict(app)
+        if self.src:
+            if self.src.startswith("http://") or self.src.startswith("https://"):
+                result["attributes"]["src"] = self.src
+            else:
+                src_path = self.src.lstrip("/\\")
+                if os.path.isfile(src_path):
+                    asset_path = src_path.replace(os.sep, "/")
+                    result["attributes"]["src"] = f"{app.asset_server_url}/{asset_path}"
+        return result
