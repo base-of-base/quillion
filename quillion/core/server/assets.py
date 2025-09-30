@@ -3,6 +3,7 @@ import mimetypes
 import os
 from aiohttp import web
 
+
 class AssetServer:
     def __init__(self, assets_dir: str = "/"):
         self.assets_dir = assets_dir
