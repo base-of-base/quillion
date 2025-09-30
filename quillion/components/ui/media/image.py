@@ -1,5 +1,5 @@
 from typing import Optional
-from .element import MediaElement
+from ..element import MediaElement
 
 
 class Image(MediaElement):

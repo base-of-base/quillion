@@ -4,7 +4,7 @@ import re
 from typing import Dict, Optional, Tuple, Union
 from ..components.base import Component
 from ..components.ui.element import Element
-from ..components.ui.container import Container
+from ..components.ui.base.container import Container
 from ..utils import RegexParser, RouteType
 
 

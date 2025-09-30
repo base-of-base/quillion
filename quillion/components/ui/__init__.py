@@ -1,7 +1,7 @@
-from .element import Element
-from .text import text
-from .button import button
-from .canvas import canvas
-from .container import container
-from .image import image
-from .input import input
+from .element import Element, MediaElement
+from .base.text import text
+from .base.button import button
+from .media.canvas import canvas
+from .base.container import container
+from .media.image import image
+from .base.input import input

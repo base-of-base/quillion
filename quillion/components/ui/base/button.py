@@ -1,5 +1,5 @@
 from typing import Optional, Callable
-from .element import Element
+from ..element import Element
 
 
 class Button(Element):

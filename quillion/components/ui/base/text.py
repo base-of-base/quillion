@@ -1,5 +1,5 @@
 from typing import Optional
-from .element import Element
+from ..element import Element
 
 
 class Text(Element):

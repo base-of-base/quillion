@@ -153,7 +153,7 @@ class Quillion:
             if inspect.isawaitable(root_element):
                 root_element = await root_element
 
-            from ..components.ui.container import Container
+            from ..components.ui.base.container import Container
 
             if not isinstance(root_element, Container):
                 root_element = Container(root_element)
