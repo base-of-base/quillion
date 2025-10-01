@@ -13,6 +13,6 @@ class Path:
     def navigate(cls, to: str, params: Optional[Dict[str, str]] = None):
         if not cls._app or not cls._app.websocket:
             return
-            
+
         path = to.format(**params) if params else to
         asyncio.create_task(cls._app.navigate(path, cls._app.websocket))
