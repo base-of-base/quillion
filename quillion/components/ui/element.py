@@ -153,8 +153,5 @@ class MediaElement(Element):
             if self.src.startswith("http://") or self.src.startswith("https://"):
                 result["attributes"]["src"] = self.src
             else:
-                src_path = self.src.lstrip("/\\")
-                if os.path.isfile(src_path):
-                    asset_path = src_path.replace(os.sep, "/")
-                    result["attributes"]["src"] = f"{app.asset_server_url}/{asset_path}"
+                result["attributes"]["src"] = f"{app.asset_server_url}/{self.src.replace(f'{app.assets_path}/', '')}"
         return result

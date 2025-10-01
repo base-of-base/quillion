@@ -23,9 +23,9 @@ class Quillion:
         self.current_path: Optional[str] = None
         assets_host = os.environ.get("QUILLION_ASSET_HOST", "localhost")
         assets_port = os.environ.get("QUILLION_ASSET_PORT", "1338")
-        assets_path = os.environ.get("QUILLION_ASSET_PATH", "")
+        self.assets_path = os.environ.get("QUILLION_ASSET_PATH", "")
         self.asset_server_url = f"http://{assets_host}:{assets_port}".rstrip("/")
-        self.asset_server = AssetServer(assets_dir=assets_path)
+        self.asset_server = AssetServer(assets_dir=self.assets_path)
         self.websocket = None
         self._state_instances: Dict[type, "State"] = {}
         self.style_tag_id = "quillion-dynamic-styles"
