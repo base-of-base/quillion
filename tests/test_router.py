@@ -13,14 +13,14 @@ class TestPathSync:
 
     def test_init_sets_app(self):
         from quillion import Path
-        
+
         mock_app = MagicMock()
 
         Path.init(mock_app)
 
         assert Path._app == mock_app
 
-    def test_navigate_without_app_does_nothing(self):        
+    def test_navigate_without_app_does_nothing(self):
         Path.navigate("/home")
 
     def test_navigate_without_websocket_does_nothing(self):
@@ -36,9 +36,9 @@ class TestPathSync:
         mock_app.navigate = MagicMock()
         Path.init(mock_app)
 
-        with patch('asyncio.create_task') as mock_create_task:
+        with patch("asyncio.create_task") as mock_create_task:
             Path.navigate("/test")
-            
+
             mock_create_task.assert_called_once()
 
     def test_multiple_init_calls(self):
@@ -49,7 +49,7 @@ class TestPathSync:
         assert Path._app == mock_app1
 
         Path.init(mock_app2)
-        
+
         assert Path._app == mock_app2
         assert Path._app != mock_app1
 
@@ -62,7 +62,7 @@ class TestPathSync:
 
         for path_template, params, expected_path in test_cases:
             result = path_template.format(**params) if params else path_template
-            
+
             assert result == expected_path
 
     def test_navigate_calls_format_with_params(self):
@@ -73,5 +73,5 @@ class TestPathSync:
         path_template = "/test/{param}"
         params = {"param": "value"}
 
-        with patch('asyncio.create_task'):
+        with patch("asyncio.create_task"):
             Path.navigate(path_template, params)
