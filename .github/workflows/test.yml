@@ -19,7 +19,8 @@ jobs:
     - name: Install deps
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pytest-asyncio
+        pip install pytest
+        pip install pytest-asyncio
         pip install -e
     
     - name: Run tests
