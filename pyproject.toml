@@ -43,8 +43,5 @@ flake8 = "^6.1.0"
 [tool.poetry.extras]
 uvloop = ["uvloop"]
 
-[tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "function"
-
 [tool.poetry.scripts]
 q = "quillion_cli.cli:app"
