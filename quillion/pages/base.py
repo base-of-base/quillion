@@ -75,7 +75,6 @@ class Page(metaclass=PageMeta):
         else:
             cached_instance = self._component_instance_cache[key]
             cached_instance.text = new_component_declaration.text
-            cached_instance.on_click = new_component_declaration.on_click
             cached_instance.inline_style_properties.update(
                 new_component_declaration.inline_style_properties
             )

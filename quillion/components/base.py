@@ -78,6 +78,4 @@ class Component(Element):
             rendered_element.inline_style_properties.update(
                 self.inline_style_properties
             )
-        if self.on_click:
-            rendered_element.on_click = self.on_click
         return rendered_element.to_dict(app)
