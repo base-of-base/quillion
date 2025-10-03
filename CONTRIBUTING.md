@@ -1,4 +1,4 @@
-# Contributing to CRow
+# Contributing to Quillion
 
 We welcome contributions! Please follow these guidelines:
 
