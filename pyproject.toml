@@ -31,6 +31,7 @@ cryptography = "^42.0"
 nest-asyncio = "^1.6.0"
 websockets = "^12.0"
 aiohttp = "3.12.15"
+quillion-cli = "0.1.2" 
 
 [tool.poetry.extras]
 uvloop = ["uvloop"]
