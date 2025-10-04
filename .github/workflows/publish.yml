@@ -1,0 +1,40 @@
+name: Publish
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Install poetry
+      run: |
+        pip install poetry
+
+    - name: Configure poetry
+      run: |
+        poetry config virtualenvs.create false
+
+    - name: Install deps
+      run: |
+        poetry install --no-interaction --no-ansi
+
+    - name: Build package
+      run: |
+        poetry build
+
+    - name: Publish to pypi
+      env:
+        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        poetry publish --username __token__ --password $POETRY_PYPI_TOKEN_PYPI
