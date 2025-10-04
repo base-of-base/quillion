@@ -11,6 +11,8 @@ class Messaging:
     async def process_inner_message(
         self, websocket: websockets.WebSocketServerProtocol, inner_data: Dict[str, Any]
     ):
+        from quillion_cli.debug.debugger import debugger
+
         inner_action = inner_data.get("action")
 
         if inner_action == "callback":
@@ -48,11 +50,11 @@ class Messaging:
             await self.app.navigate(inner_data.get("path", "/"), websocket)
         elif inner_action == "client_error":
             traceback = inner_data.get("error", "")
-            print(
+            debugger.error(
                 f"\n[{websocket.remote_address[0]}:{websocket.remote_address[1]}] Error occurred"
             )
             print(traceback)
         else:
-            print(
+            debugger.info(
                 f"[{websocket.remote_address[0]}:{websocket.remote_address[1]}] Unknown action: {inner_action}"
             )

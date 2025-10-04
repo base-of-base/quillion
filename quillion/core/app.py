@@ -9,6 +9,7 @@ from .crypto import Crypto
 from .messaging import Messaging
 from .server import AssetServer, ServerConnection
 from .router import Path
+import asyncio
 from ..pages.base import Page
 from ..components import State
 
@@ -79,7 +80,7 @@ class Quillion:
                     connection_id = (
                         f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
                     )
-                    print(
+                    debugger.error(
                         f"[{connection_id}] json decode error: {e} - msg: {message}. not decrypted?"
                     )
                 except Exception as e:
@@ -133,8 +134,6 @@ class Quillion:
 
     def redirect(self, path: str):
         if self.websocket:
-            import asyncio
-
             asyncio.create_task(self.navigate(path, self.websocket))
 
     async def render_current_page(self, websocket: websockets.WebSocketServerProtocol):
