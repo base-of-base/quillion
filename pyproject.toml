@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "quillion"
-version = "0.2.6"
+version = "0.2.7"
 description = "Modern asynchronous web framework"
 authors = ["anybody"]
 license = "MIT"
@@ -31,7 +31,7 @@ cryptography = "^42.0"
 nest-asyncio = "^1.6.0"
 websockets = "^12.0"
 aiohttp = "3.12.15"
-quillion-cli = "0.1.2" 
+quillion-cli = "^0.1.3"
 
 [tool.poetry.extras]
 uvloop = ["uvloop"]
