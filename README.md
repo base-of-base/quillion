@@ -27,7 +27,7 @@
 
 3.  **Run the app:**
     ```bash
-    python main.py
+    q run
     ```
 
 -----
