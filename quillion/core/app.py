@@ -57,10 +57,10 @@ class Quillion:
 
         self.websocket = websocket
         connection_id = self._get_connection_id(websocket)
-        
+
         if self:
             debugger.info(f"[{connection_id}] Received new connection")
-        
+
         self._state_instances = {}
         initial_path = websocket.path
         try:
@@ -113,7 +113,7 @@ class Quillion:
         if page_cls and websocket:
             current_page = page_cls(params=params or {})
             self.current_path = path
-            
+
             await self.render_page(current_page, websocket)
             connection_id = self._get_connection_id(websocket)
             debugger.info(f"[{connection_id}] Redirected to: {path}")
@@ -125,7 +125,9 @@ class Quillion:
         if self.websocket:
             asyncio.create_task(self.navigate(path, self.websocket))
 
-    async def render_page(self, page_instance: Page, websocket: websockets.WebSocketServerProtocol):
+    async def render_page(
+        self, page_instance: Page, websocket: websockets.WebSocketServerProtocol
+    ):
         if not page_instance or not websocket:
             return
 

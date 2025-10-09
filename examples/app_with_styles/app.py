@@ -1,8 +1,10 @@
 from quillion.components import container, text, button, State
 from quillion import app, page
 
+
 class AppState(State):
     count: int = 0
+
 
 @page("/")
 def home():

@@ -13,7 +13,7 @@ def user_page(user_id):
                 weight="300",
                 letter_spacing="0.5px",
                 margin_bottom="20px",
-            ), 
+            ),
             padding="40px",
             background="white",
             border_radius="12px",
@@ -31,5 +31,6 @@ def user_page(user_id):
         align_items="center",
         flex_direction="column",
     )
+
 
 app.start()
