@@ -108,7 +108,6 @@ class TestQuillion:
                 mock_websocket, {"action": "redirect", "url": test_url}
             )
 
-
     def test_redirect_no_websocket(self, quillion):
         quillion.websocket = None
         test_path = "/redirect"
