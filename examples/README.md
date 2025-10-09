@@ -1,3 +1,1 @@
 # Quillion apps examples
-
-## More coming soon...
