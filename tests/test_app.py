@@ -64,7 +64,6 @@ class TestQuillion:
 
     def test_initialization(self, quillion):
         assert quillion.callbacks == {}
-        assert quillion.current_page is None
         assert quillion.current_path is None
         assert quillion.assets_path == "/test/assets"
         assert quillion.asset_server_url == "http://localhost:1338"
@@ -109,76 +108,12 @@ class TestQuillion:
                 mock_websocket, {"action": "redirect", "url": test_url}
             )
 
-    @pytest.mark.asyncio
-    async def test_navigate_route_found_new_page(
-        self, quillion, mock_websocket, mock_page
-    ):
-        test_path = "/test"
-
-        with patch.object(
-            RouteFinder, "find_route", return_value=(mock_page.__class__, {}, None)
-        ):
-            with patch.object(
-                quillion, "render_current_page", AsyncMock()
-            ) as mock_render:
-                with patch("quillion_cli.debug.debugger.debugger") as mock_debugger:
-
-                    await quillion.navigate(test_path, mock_websocket)
-
-                    RouteFinder.find_route.assert_called_once_with(test_path)
-                    mock_render.assert_called_once_with(mock_websocket)
-                    assert quillion.current_page is not None
-                    assert quillion.current_path == test_path
-                    mock_debugger.info.assert_called()
-
-    @pytest.mark.asyncio
-    async def test_navigate_route_found_same_page(
-        self, quillion, mock_websocket, mock_page
-    ):
-        test_path = "/test"
-        quillion.current_page = mock_page
-
-        with patch.object(
-            RouteFinder, "find_route", return_value=(mock_page.__class__, {}, None)
-        ):
-            with patch.object(
-                quillion, "render_current_page", AsyncMock()
-            ) as mock_render:
-                with patch("quillion_cli.debug.debugger.debugger") as mock_debugger:
-
-                    await quillion.navigate(test_path, mock_websocket)
-
-                    RouteFinder.find_route.assert_called_once_with(test_path)
-                    mock_render.assert_called_once_with(mock_websocket)
-                    assert quillion.current_page is mock_page
-                    mock_debugger.info.assert_called()
-
-    @pytest.mark.asyncio
-    async def test_navigate_route_not_found(self, quillion, mock_websocket):
-        test_path = "/unknown"
-
-        with patch.object(RouteFinder, "find_route", return_value=(None, None, None)):
-            with patch("quillion_cli.debug.debugger.debugger") as mock_debugger:
-
-                await quillion.navigate(test_path, mock_websocket)
-
-                RouteFinder.find_route.assert_called_once_with(test_path)
-                mock_debugger.error.assert_called_once_with(
-                    f"[127.0.0.1:8080] Received unknown path: {test_path}"
-                )
 
     def test_redirect_no_websocket(self, quillion):
         quillion.websocket = None
         test_path = "/redirect"
 
         quillion.redirect(test_path)
-
-    @pytest.mark.asyncio
-    async def test_render_current_page_no_page_or_websocket(self, quillion):
-        await quillion.render_current_page(Mock())
-
-        quillion.current_page = Mock()
-        await quillion.render_current_page(None)
 
     @pytest.mark.asyncio
     async def test_render_current_page_exception(

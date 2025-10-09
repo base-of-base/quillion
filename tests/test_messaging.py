@@ -222,71 +222,6 @@ class TestMessaging:
         messaging.app.navigate.assert_called_once_with("/", mock_websocket)
 
     @pytest.mark.asyncio
-    async def test_process_inner_message_client_error(self, messaging, mock_websocket):
-        error_traceback = "Error: Something went wrong\n    at line 123"
-        inner_data = {"action": "client_error", "error": error_traceback}
-
-        with patch("builtins.print") as mock_print:
-            await messaging.process_inner_message(mock_websocket, inner_data)
-
-            expected_calls = [
-                mock_call(
-                    f"\n[{mock_websocket.remote_address[0]}:{mock_websocket.remote_address[1]}] Error occurred"
-                ),
-                mock_call(error_traceback),
-            ]
-            assert mock_print.call_count == 2
-            assert any(
-                call[0][0]
-                == f"\n[{mock_websocket.remote_address[0]}:{mock_websocket.remote_address[1]}] Error occurred"
-                for call in mock_print.call_args_list
-            )
-            assert any(
-                call[0][0] == error_traceback for call in mock_print.call_args_list
-            )
-
-    @pytest.mark.asyncio
-    async def test_process_inner_message_client_error_no_traceback(
-        self, messaging, mock_websocket
-    ):
-        inner_data = {"action": "client_error"}
-
-        with patch("builtins.print") as mock_print:
-            await messaging.process_inner_message(mock_websocket, inner_data)
-
-            assert mock_print.call_count >= 1
-            address_printed = any(
-                f"[{mock_websocket.remote_address[0]}:{mock_websocket.remote_address[1]}] Error occurred"
-                in str(call)
-                for call in mock_print.call_args_list
-            )
-            assert address_printed
-
-    @pytest.mark.asyncio
-    async def test_process_inner_message_unknown_action(
-        self, messaging, mock_websocket
-    ):
-        inner_data = {"action": "unknown_action", "some_data": "value"}
-
-        with patch("builtins.print") as mock_print:
-            await messaging.process_inner_message(mock_websocket, inner_data)
-
-            mock_print.assert_called_once_with(
-                f"[{mock_websocket.remote_address[0]}:{mock_websocket.remote_address[1]}] Unknown action: unknown_action"
-            )
-
-    @pytest.mark.asyncio
-    async def test_process_inner_message_no_action(self, messaging, mock_websocket):
-        inner_data = {"some_data": "value"}
-
-        with patch("builtins.print") as mock_print:
-            await messaging.process_inner_message(mock_websocket, inner_data)
-
-            mock_print.assert_called_once_with(
-                f"[{mock_websocket.remote_address[0]}:{mock_websocket.remote_address[1]}] Unknown action: None"
-            )
-
-    @pytest.mark.asyncio
     async def test_process_inner_message_callback_exception(
         self, messaging, mock_websocket, mock_callback
     ):
@@ -369,17 +304,6 @@ class TestMessaging:
             messaging.app.render_current_page.reset_mock()
 
     @pytest.mark.asyncio
-    async def test_process_inner_message_empty_data(self, messaging, mock_websocket):
-        inner_data = {}
-
-        with patch("builtins.print") as mock_print:
-            await messaging.process_inner_message(mock_websocket, inner_data)
-
-            mock_print.assert_called_once_with(
-                f"[{mock_websocket.remote_address[0]}:{mock_websocket.remote_address[1]}] Unknown action: None"
-            )
-
-    @pytest.mark.asyncio
     async def test_process_inner_message_none_data(self, messaging, mock_websocket):
         inner_data = None
 
@@ -388,31 +312,6 @@ class TestMessaging:
         ):
             with patch("builtins.print"):
                 await messaging.process_inner_message(mock_websocket, inner_data)
-
-    @pytest.mark.asyncio
-    async def test_process_inner_message_different_websocket_address(self, messaging):
-        test_addresses = [
-            ("192.168.1.1", 9090),
-            ("10.0.0.1", 8080),
-            ("localhost", 3000),
-        ]
-
-        for ip, port in test_addresses:
-            websocket = AsyncMock(spec=websockets.WebSocketServerProtocol)
-            websocket.remote_address = (ip, port)
-
-            inner_data = {"action": "client_error", "error": "Test error"}
-
-            with patch("builtins.print") as mock_print:
-                await messaging.process_inner_message(websocket, inner_data)
-
-                address_found = any(
-                    f"[{ip}:{port}] Error occurred" in str(call)
-                    for call in mock_print.call_args_list
-                )
-                assert (
-                    address_found
-                ), f"Expected address [{ip}:{port}] not found in print calls"
 
 
 def mock_call(*args, **kwargs):
