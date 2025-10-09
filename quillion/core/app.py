@@ -19,8 +19,7 @@ class Quillion:
 
     def __init__(self):
         Quillion._instance = self
-        self.callbacks: Dict[str, сallable] = {}
-        self.current_page: Optional[Page] = None
+        self.callbacks: Dict[str, callable] = {}
         self.current_path: Optional[str] = None
         assets_host = os.environ.get("QUILLION_ASSET_HOST", "localhost")
         assets_port = os.environ.get("QUILLION_ASSET_PORT", "1338")
@@ -38,6 +37,9 @@ class Quillion:
         self.external_css_files: List[str] = []
         self._css_cache: Dict[str, str] = {}
 
+    def _get_connection_id(self, websocket: websockets.WebSocketServerProtocol) -> str:
+        return f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
+
     def _load_css_file(self, css_file: str) -> str:
         from quillion_cli.debug.debugger import debugger
 
@@ -54,11 +56,11 @@ class Quillion:
         from quillion_cli.debug.debugger import debugger
 
         self.websocket = websocket
+        connection_id = self._get_connection_id(websocket)
+        
         if self:
-            connection_id = (
-                f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
-            )
             debugger.info(f"[{connection_id}] Received new connection")
+        
         self._state_instances = {}
         initial_path = websocket.path
         try:
@@ -77,22 +79,13 @@ class Quillion:
                             websocket, inner_data
                         )
                 except json.JSONDecodeError as e:
-                    connection_id = (
-                        f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
-                    )
                     debugger.error(
                         f"[{connection_id}] json decode error: {e} - msg: {message}. not decrypted?"
                     )
                 except Exception as e:
-                    connection_id = (
-                        f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
-                    )
                     debugger.error(f"[{connection_id}] Error: {e}")
                     raise
         except Exception as e:
-            connection_id = (
-                f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
-            )
             debugger.error(f"[{connection_id}] Error: {e}")
             raise
         finally:
@@ -118,36 +111,32 @@ class Quillion:
         page_cls, params, _ = RouteFinder.find_route(path)
 
         if page_cls and websocket:
-            if not self.current_page or self.current_page.__class__ != page_cls:
-                self.current_page = page_cls(params=params or {})
+            current_page = page_cls(params=params or {})
             self.current_path = path
-            await self.render_current_page(websocket)
-            connection_id = (
-                f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
-            )
+            
+            await self.render_page(current_page, websocket)
+            connection_id = self._get_connection_id(websocket)
             debugger.info(f"[{connection_id}] Redirected to: {path}")
         else:
-            connection_id = (
-                f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
-            )
-            debugger.error(f"[{connection_id}] Received unknown path: {path}")
+            connection_id = self._get_connection_id(websocket)
+            debugger.info(f"[{connection_id}] Received unknown path: {path}")
 
     def redirect(self, path: str):
         if self.websocket:
             asyncio.create_task(self.navigate(path, self.websocket))
 
-    async def render_current_page(self, websocket: websockets.WebSocketServerProtocol):
-        if not self.current_page or not websocket:
+    async def render_page(self, page_instance: Page, websocket: websockets.WebSocketServerProtocol):
+        if not page_instance or not websocket:
             return
 
-        self._current_rendering_page = self.current_page
-        self.current_page._rendered_component_keys.clear()
+        self._current_rendering_page = page_instance
+        page_instance._rendered_component_keys.clear()
 
-        for component_instance in self.current_page._component_instance_cache.values():
+        for component_instance in page_instance._component_instance_cache.values():
             component_instance._reset_hooks()
 
         try:
-            root_element = self.current_page.render(**self.current_page.params)
+            root_element = page_instance.render(**page_instance.params)
 
             if inspect.isawaitable(root_element):
                 root_element = await root_element
@@ -157,7 +146,7 @@ class Quillion:
             if not isinstance(root_element, Container):
                 root_element = Container(root_element)
 
-            page_class_name = self.current_page.get_page_class_name()
+            page_class_name = page_instance.get_page_class_name()
             root_element.add_class(page_class_name)
 
             css_content = ""
@@ -175,7 +164,7 @@ class Quillion:
 
             content = [style_element, tree]
 
-            self.current_page._cleanup_old_component_instances()
+            page_instance._cleanup_old_component_instances()
             content_message_for_encryption = {
                 "action": "render_page",
                 "path": self.current_path,

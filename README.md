@@ -2,7 +2,7 @@
 
 ![Q Logo](assets/q_logo.svg)
 
-**Quillion** is a Python web framework for building fast, reactive, and elegant web applications with minimal effort
+**Quillion** is a Python web framework for building fast, reactive, and elegant web applications with minimal effort.
 
 -----
 
@@ -13,7 +13,12 @@
     pip install quillion
     ```
 
-2.  **Create main.py**
+2.  **Create your first app:**
+    ```bash
+    q new myapp
+    ```
+    
+    **And edit app.py:**
     ```python
     from quillion import app, page
     from quillion.components import text
@@ -27,7 +32,7 @@
 
 3.  **Run the app:**
     ```bash
-    python main.py
+    q run myapp
     ```
 
 -----
