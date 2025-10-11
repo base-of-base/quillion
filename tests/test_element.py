@@ -94,9 +94,7 @@ class TestElement:
         assert element.event_handlers["mouseover"] == mouseover_handler
 
     def test_element_initialization_with_inline_styles(self):
-        element = Element(
-            "div", styles={"color": "red", "font-size": "16px"}
-        )
+        element = Element("div", styles={"color": "red", "font-size": "16px"})
         assert element.styles["color"] == "red"
         assert element.styles["font-size"] == "16px"
 
@@ -230,9 +228,7 @@ class TestElement:
         )
 
     def test_to_dict_with_inline_styles(self):
-        element = Element(
-            "div", styles={"color": "red", "font-size": "16px"}
-        )
+        element = Element("div", styles={"color": "red", "font-size": "16px"})
         mock_app = Mock()
         mock_app.callbacks = {}
 
@@ -256,9 +252,7 @@ class TestElement:
         assert "font-size: 16px;" in style_attr
 
     def test_to_dict_with_mixed_styles(self):
-        element = Element(
-            "div", styles={"color": "red"}, backgroundColor="blue"
-        )
+        element = Element("div", styles={"color": "red"}, backgroundColor="blue")
         mock_app = Mock()
         mock_app.callbacks = {}
 

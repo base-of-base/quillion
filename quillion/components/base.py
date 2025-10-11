@@ -75,7 +75,5 @@ class Component(Element):
         if self.css_classes:
             rendered_element.css_classes.extend(self.css_classes)
         if self.styles:
-            rendered_element.styles.update(
-                self.styles
-            )
+            rendered_element.styles.update(self.styles)
         return rendered_element.to_dict(app)

@@ -50,9 +50,7 @@ class Element:
                     for style in styles:
                         if ":" in style:
                             css_key, css_value = style.split(":", 1)
-                            self.styles[css_key.strip()] = (
-                                css_value.strip()
-                            )
+                            self.styles[css_key.strip()] = css_value.strip()
             else:
                 self.style_properties.append(StyleProperty(prop_key, prop_value))
 
