@@ -21,7 +21,7 @@ class Element:
         tag: str,
         text: Optional[str] = None,
         event_handlers: Optional[Dict[str, Callable]] = None,
-        inline_style_properties: Optional[Dict[str, str]] = None,
+        styles: Optional[Dict[str, str]] = None,
         classes: Optional[List[str]] = None,
         key: Optional[str] = None,
         class_name: Optional[str] = None,
@@ -32,7 +32,7 @@ class Element:
         self.event_handlers = event_handlers or {}
         self.children: List["Element"] = []
         self.attributes = {}
-        self.inline_style_properties = inline_style_properties or {}
+        self.styles = styles or {}
         self.css_classes = classes or []
         self.key = key
         self.style_properties: List["StyleProperty"] = []
@@ -50,7 +50,7 @@ class Element:
                     for style in styles:
                         if ":" in style:
                             css_key, css_value = style.split(":", 1)
-                            self.inline_style_properties[css_key.strip()] = (
+                            self.styles[css_key.strip()] = (
                                 css_value.strip()
                             )
             else:
@@ -91,7 +91,7 @@ class Element:
 
         all_styles = {}
 
-        all_styles.update(self.inline_style_properties)
+        all_styles.update(self.styles)
 
         for prop in self.style_properties:
             all_styles.update(prop.to_css_properties_dict())
@@ -129,7 +129,7 @@ class MediaElement(Element):
         tag: str,
         src: Optional[str] = None,
         event_handlers: Optional[Dict[str, Callable]] = None,
-        inline_style_properties: Optional[Dict[str, str]] = None,
+        styles: Optional[Dict[str, str]] = None,
         classes: Optional[List[str]] = None,
         key: Optional[str] = None,
         class_name: Optional[str] = None,
@@ -139,7 +139,7 @@ class MediaElement(Element):
             tag,
             src,
             event_handlers,
-            inline_style_properties,
+            styles,
             classes,
             key,
             class_name,

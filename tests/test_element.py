@@ -50,7 +50,7 @@ class TestElement:
         assert element.event_handlers == {}
         assert element.children == []
         assert element.attributes == {}
-        assert element.inline_style_properties == {}
+        assert element.styles == {}
         assert element.css_classes == []
         assert element.key is None
         assert element.style_properties == []
@@ -95,10 +95,10 @@ class TestElement:
 
     def test_element_initialization_with_inline_styles(self):
         element = Element(
-            "div", inline_style_properties={"color": "red", "font-size": "16px"}
+            "div", styles={"color": "red", "font-size": "16px"}
         )
-        assert element.inline_style_properties["color"] == "red"
-        assert element.inline_style_properties["font-size"] == "16px"
+        assert element.styles["color"] == "red"
+        assert element.styles["font-size"] == "16px"
 
     def test_element_initialization_with_on_prefix_handlers(self):
         def click_handler():
@@ -115,8 +115,8 @@ class TestElement:
 
     def test_element_initialization_with_style_string(self):
         element = Element("div", style="color: red; font-size: 16px;")
-        assert element.inline_style_properties["color"] == "red"
-        assert element.inline_style_properties["font-size"] == "16px"
+        assert element.styles["color"] == "red"
+        assert element.styles["font-size"] == "16px"
 
     def test_element_initialization_with_regular_attributes(self):
         element = Element("input", type="text", id="name", name="username")
@@ -231,7 +231,7 @@ class TestElement:
 
     def test_to_dict_with_inline_styles(self):
         element = Element(
-            "div", inline_style_properties={"color": "red", "font-size": "16px"}
+            "div", styles={"color": "red", "font-size": "16px"}
         )
         mock_app = Mock()
         mock_app.callbacks = {}
@@ -257,7 +257,7 @@ class TestElement:
 
     def test_to_dict_with_mixed_styles(self):
         element = Element(
-            "div", inline_style_properties={"color": "red"}, backgroundColor="blue"
+            "div", styles={"color": "red"}, backgroundColor="blue"
         )
         mock_app = Mock()
         mock_app.callbacks = {}
@@ -359,7 +359,7 @@ class TestMediaElement:
             "video",
             src="video.mp4",
             event_handlers={"load": load_handler},
-            inline_style_properties={"width": "100%"},
+            styles={"width": "100%"},
             classes=["video-player"],
             key="video-1",
             class_name="media",
@@ -369,7 +369,7 @@ class TestMediaElement:
         assert media.tag == "video"
         assert media.src == "video.mp4"
         assert media.event_handlers["load"] == load_handler
-        assert media.inline_style_properties["width"] == "100%"
+        assert media.styles["width"] == "100%"
         assert "video-player" in media.css_classes
         assert "media" in media.css_classes
         assert media.key == "video-1"
@@ -430,19 +430,19 @@ class TestMediaElement:
 class TestElementEdgeCases:
     def test_element_empty_style_string(self):
         element = Element("div", style="")
-        assert element.inline_style_properties == {}
+        assert element.styles == {}
 
     def test_element_malformed_style_string(self):
         element = Element("div", style="color:red;invalid;font-size:16px;")
-        assert "color" in element.inline_style_properties
-        assert "font-size" in element.inline_style_properties
-        assert element.inline_style_properties["color"] == "red"
-        assert element.inline_style_properties["font-size"] == "16px"
+        assert "color" in element.styles
+        assert "font-size" in element.styles
+        assert element.styles["color"] == "red"
+        assert element.styles["font-size"] == "16px"
 
     def test_element_style_string_with_spaces(self):
         element = Element("div", style="  color :  red  ;  font-size  :  16px  ;  ")
-        assert element.inline_style_properties["color"] == "red"
-        assert element.inline_style_properties["font-size"] == "16px"
+        assert element.styles["color"] == "red"
+        assert element.styles["font-size"] == "16px"
 
     def test_element_special_characters_in_text(self):
         element = Element("div", text='Hello "World" <with> & special chars')
@@ -542,7 +542,7 @@ class TestElementIntegration:
             "button",
             text="Click me",
             event_handlers={"click": click_handler},
-            inline_style_properties={"border": "1px solid black"},
+            styles={"border": "1px solid black"},
             classes=["btn", "primary"],
             key="submit-btn",
             class_name="custom-btn",

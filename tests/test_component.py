@@ -243,14 +243,14 @@ class TestComponent:
                 return element
 
         component = StyledComponent()
-        component.inline_style_properties = {"color": "red", "font-size": "16px"}
+        component.styles = {"color": "red", "font-size": "16px"}
         mock_app = Mock()
 
         result = component.to_dict(mock_app)
 
-        if "inline_style_properties" in result:
-            assert result["inline_style_properties"]["color"] == "red"
-            assert result["inline_style_properties"]["font-size"] == "16px"
+        if "styles" in result:
+            assert result["styles"]["color"] == "red"
+            assert result["styles"]["font-size"] == "16px"
         elif "attributes" in result and "style" in result["attributes"]:
             style_attr = result["attributes"]["style"]
             assert (
@@ -267,7 +267,7 @@ class TestComponent:
         component = FullComponent()
         component.key = "full-key"
         component.css_classes = ["main", "container"]
-        component.inline_style_properties = {"margin": "10px", "padding": "5px"}
+        component.styles = {"margin": "10px", "padding": "5px"}
         component.on_click = Mock()
 
         mock_app = Mock()

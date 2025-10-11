@@ -75,8 +75,8 @@ class Page(metaclass=PageMeta):
         else:
             cached_instance = self._component_instance_cache[key]
             cached_instance.text = new_component_declaration.text
-            cached_instance.inline_style_properties.update(
-                new_component_declaration.inline_style_properties
+            cached_instance.styles.update(
+                new_component_declaration.styles
             )
             for cls in new_component_declaration.css_classes:
                 if cls not in cached_instance.css_classes:

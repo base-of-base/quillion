@@ -237,7 +237,7 @@ class TestPage:
         mock_component.key = "test-key"
         mock_component.text = "test text"
         mock_component.css_classes = []
-        mock_component.inline_style_properties = {}
+        mock_component.styles = {}
 
         result = page_with_router._get_or_create_component_instance(mock_component)
 
@@ -254,7 +254,7 @@ class TestPage:
         mock_component1.key = "test-key"
         mock_component1.text = "initial text"
         mock_component1.css_classes = ["class1"]
-        mock_component1.inline_style_properties = {"color": "red"}
+        mock_component1.styles = {"color": "red"}
 
         page_with_router._get_or_create_component_instance(mock_component1)
 
@@ -262,14 +262,14 @@ class TestPage:
         mock_component2.key = "test-key"
         mock_component2.text = "updated text"
         mock_component2.css_classes = ["class2"]
-        mock_component2.inline_style_properties = {"background": "blue"}
+        mock_component2.styles = {"background": "blue"}
 
         result = page_with_router._get_or_create_component_instance(mock_component2)
 
         assert result == mock_component1
         assert mock_component1.text == "updated text"
         assert "class2" in mock_component1.css_classes
-        assert mock_component1.inline_style_properties["background"] == "blue"
+        assert mock_component1.styles["background"] == "blue"
 
     def test_get_or_create_component_instance_no_key(self, page_with_router):
         mock_component = Mock(spec=Component)
@@ -372,7 +372,7 @@ class TestPageIntegration:
         mock_component.key = "test-component"
         mock_component.text = "initial"
         mock_component.css_classes = []
-        mock_component.inline_style_properties = {}
+        mock_component.styles = {}
 
         component1 = page._get_or_create_component_instance(mock_component)
         assert "test-component" in page._component_instance_cache
@@ -381,7 +381,7 @@ class TestPageIntegration:
         mock_component2.key = "test-component"
         mock_component2.text = "updated"
         mock_component2.css_classes = ["new-class"]
-        mock_component2.inline_style_properties = {"color": "red"}
+        mock_component2.styles = {"color": "red"}
 
         component2 = page._get_or_create_component_instance(mock_component2)
         assert component1 == component2

@@ -74,8 +74,8 @@ class Component(Element):
             rendered_element.key = self.key
         if self.css_classes:
             rendered_element.css_classes.extend(self.css_classes)
-        if self.inline_style_properties:
-            rendered_element.inline_style_properties.update(
-                self.inline_style_properties
+        if self.styles:
+            rendered_element.styles.update(
+                self.styles
             )
         return rendered_element.to_dict(app)
