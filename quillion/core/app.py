@@ -128,7 +128,7 @@ class Quillion:
     async def render_current_page(self, websocket: websockets.WebSocketServerProtocol):
         if not self.current_path or not websocket:
             return
-            
+
         page_cls, params, _ = RouteFinder.find_route(self.current_path)
         if page_cls:
             current_page = page_cls(params=params or {})
