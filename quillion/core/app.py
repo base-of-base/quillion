@@ -125,6 +125,15 @@ class Quillion:
         if self.websocket:
             asyncio.create_task(self.navigate(path, self.websocket))
 
+    async def render_current_page(self, websocket: websockets.WebSocketServerProtocol):
+        if not self.current_path or not websocket:
+            return
+            
+        page_cls, params, _ = RouteFinder.find_route(self.current_path)
+        if page_cls:
+            current_page = page_cls(params=params or {})
+            await self.render_page(current_page, websocket)
+
     async def render_page(
         self, page_instance: Page, websocket: websockets.WebSocketServerProtocol
     ):

@@ -1,167 +1,126 @@
-from .element import Element, MediaElement
+from .element import Element, MediaElement, StyleProperty
 
-from .element import StyleProperty
-from .element import Element
-from .element import MediaElement
-from .base.anchor import Anchor
 from .base.anchor import anchor
-from .base.article import Article
 from .base.article import article
-from .base.aside import Aside
 from .base.aside import aside
-from .base.button import Button
+from .base.bold import bold
+from .base.break_line import break_line
 from .base.button import button
-from .base.container import Container
 from .base.container import container
-from .base.footer import Footer
+from .base.dialog import dialog
+from .base.element import code
+from .base.emphasis import emphasis
 from .base.footer import footer
-from .base.form import Form
 from .base.form import form
-from .base.heading import Heading
 from .base.heading import heading
-from .base.input import Input
-from .base.input import input
-from .base.label import Label
+from .base.horizontal_rule import horizontal_rule
+from .base.prompt import prompt
+from .base.italic import italic
 from .base.label import label
-from .base.list_item import ListItem
+from .base.legend import legend
+from .base.link import link
 from .base.list_item import list_item
-from .base.main import Main
 from .base.main import main
-from .base.navigation import Navigation
+from .base.mark import mark
+from .base.menu import menu
 from .base.navigation import navigation
-from .base.option import Option
 from .base.option import option
-from .base.ordered_list import OrderedList
 from .base.ordered_list import ordered_list
-from .base.paragraph import Paragraph
 from .base.paragraph import paragraph
-from .base.section import Section
+from .base.preformatted import preformatted
+from .base.scipt import script
 from .base.section import section
-from .base.select import Select
 from .base.select import select
-from .base.span import Span
+from .base.small import small
 from .base.span import span
-from .base.table import Table
+from .base.strikethrough import strikethrough
+from .base.strong import strong
+from .base.style import style
+from .base.summary import summary
 from .base.table import table
-from .base.table_cell import TableCell
 from .base.table_cell import table_cell
-from .base.table_header import TableHeader
 from .base.table_header import table_header
-from .base.table_row import TableRow
 from .base.table_row import table_row
-from .base.text import Text
+from .base.template import template
 from .base.text import text
-from .base.textarea import TextArea
 from .base.textarea import textarea
-from .base.unordered_list import UnorderedList
+from .base.underline import underline
 from .base.unordered_list import unordered_list
-from .media.area import Area
 from .media.area import area
-from .media.audio import Audio
 from .media.audio import audio
-from .media.canvas import Canvas
 from .media.canvas import canvas
-from .media.embed import Embed
 from .media.embed import embed
-from .media.figure import Figure
-from .media.figure import figure
-from .media.fig_caption import FigCaption
 from .media.fig_caption import figcaption
-from .media.iframe import Iframe
+from .media.figure import figure
 from .media.iframe import iframe
-from .media.image import Image
 from .media.image import image
-from .media.map import Map
 from .media.map import map
-from .media.object import Object
 from .media.object import object
-from .media.source import Picture
 from .media.source import picture
-from .media.svg import Svg
 from .media.svg import svg
-from .media.track import Track
 from .media.track import track
 
 __all__ = [
-    'Anchor',
-    'Area',
-    'Article',
-    'Aside',
-    'Audio',
-    'Button',
-    'Canvas',
-    'Container',
-    'Element',
-    'Embed',
-    'FigCaption',
-    'Figure',
-    'Footer',
-    'Form',
-    'Heading',
-    'Iframe',
-    'Image',
-    'Input',
-    'Label',
-    'ListItem',
-    'Main',
-    'Map',
-    'MediaElement',
-    'Navigation',
-    'Object',
-    'Option',
-    'OrderedList',
-    'Paragraph',
-    'Picture',
-    'Section',
-    'Select',
-    'Span',
-    'StyleProperty',
-    'Svg',
-    'Table',
-    'TableCell',
-    'TableHeader',
-    'TableRow',
-    'Text',
-    'TextArea',
-    'Track',
-    'UnorderedList',
-    'anchor',
-    'area',
-    'article',
-    'aside',
-    'audio',
-    'button',
-    'canvas',
-    'container',
-    'embed',
-    'figcaption',
-    'figure',
-    'footer',
-    'form',
-    'heading',
-    'iframe',
-    'image',
-    'input',
-    'label',
-    'list_item',
-    'main',
-    'map',
-    'navigation',
-    'object',
-    'option',
-    'ordered_list',
-    'paragraph',
-    'picture',
-    'section',
-    'select',
-    'span',
-    'svg',
-    'table',
-    'table_cell',
-    'table_header',
-    'table_row',
-    'text',
-    'textarea',
-    'track',
-    'unordered_list',
+    "anchor",
+    "area",
+    "article",
+    "aside",
+    "audio",
+    "bold",
+    "break_line",
+    "button",
+    "canvas",
+    "code",
+    "container",
+    "dialog",
+    "embed",
+    "emphasis",
+    "figcaption",
+    "figure",
+    "footer",
+    "form",
+    "heading",
+    "horizontal_rule",
+    "iframe",
+    "image",
+    "prompt",
+    "italic",
+    "label",
+    "legend",
+    "link",
+    "list_item",
+    "main",
+    "map",
+    "mark",
+    "menu",
+    "navigation",
+    "object",
+    "option",
+    "ordered_list",
+    "paragraph",
+    "picture",
+    "preformatted",
+    "script",
+    "section",
+    "select",
+    "small",
+    "span",
+    "strikethrough",
+    "strong",
+    "style",
+    "summary",
+    "svg",
+    "table",
+    "table_cell",
+    "table_header",
+    "table_row",
+    "template",
+    "text",
+    "textarea",
+    "track",
+    "underline",
+    "unordered_list",
+    "Element",
+    "MediaElement",
+    "StyleProperty",
 ]
