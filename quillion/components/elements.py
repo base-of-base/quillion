@@ -30,9 +30,11 @@ class Text(TextMixin, Component):
 class Button(Component):
     tag_name = "button"
 
-    def __init__(self, label: str, on_click: Optional[Callable] = None, **kwargs: Any) -> None:
+    def __init__(
+        self, label: str, on_click: Optional[Callable] = None, **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
-        self.label    = label
+        self.label = label
         self.on_click = on_click
 
     def get_props(self) -> Dict[str, Any]:
@@ -43,7 +45,7 @@ class Button(Component):
 
 class Heading(TextMixin, Component):
     def __init__(self, *parts: Any, level: int = 1, **kwargs: Any) -> None:
-        self.level    = min(max(level, 1), 6)
+        self.level = min(max(level, 1), 6)
         self.tag_name = f"h{self.level}"
         super().__init__(*parts, **kwargs)
 
@@ -61,7 +63,7 @@ class NavLink(Component):
 
     def __init__(self, path: str, label: str, **kwargs: Any) -> None:
         super().__init__(**kwargs)
-        self.path  = path
+        self.path = path
         self.label = label
 
     def get_props(self) -> Dict[str, Any]:
@@ -72,7 +74,9 @@ class NavLink(Component):
     def on_click(self, event_data: Optional[Dict] = None) -> None:
         session = ctx.current_session.get()
         if session:
-            asyncio.create_task(session.navigator.navigate_to(self.path, session.serializer))
+            asyncio.create_task(
+                session.navigator.navigate_to(self.path, session.serializer)
+            )
 
 
 class Image(Component):
@@ -95,7 +99,7 @@ class Link(Component):
     def __init__(self, href: str, rel: str = "stylesheet", **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.href = href
-        self.rel  = rel
+        self.rel = rel
 
     def get_props(self) -> Dict[str, Any]:
         props = {"href": self.href, "rel": self.rel}
@@ -106,9 +110,11 @@ class Link(Component):
 class Script(Component):
     tag_name = "script"
 
-    def __init__(self, src: Optional[str] = None, content: Optional[str] = None, **kwargs: Any) -> None:
+    def __init__(
+        self, src: Optional[str] = None, content: Optional[str] = None, **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
-        self.src     = src
+        self.src = src
         self.content = content
 
     def get_props(self) -> Dict[str, Any]:
@@ -168,7 +174,7 @@ class Anchor(Component):
     tag_name = "a"
 
     def __init__(self, *children: Any, href: str = "#", **kwargs: Any) -> None:
-        self.href     = href
+        self.href = href
         self.children = _wrap_children(children)
         super().__init__(**kwargs)
 
@@ -193,19 +199,19 @@ class HorizontalRule(Component):
 
 
 container = Container
-text      = Text
-button    = Button
-heading   = Heading
-div       = Div
-span      = Span
-navlink   = NavLink
-image     = Image
-link      = Link
-script    = Script
-style     = Style
-ul        = UnorderedList
-ol        = OrderedList
-li        = ListItem
-a         = Anchor
-br        = Break
-hr        = HorizontalRule
+text = Text
+button = Button
+heading = Heading
+div = Div
+span = Span
+navlink = NavLink
+image = Image
+link = Link
+script = Script
+style = Style
+ul = UnorderedList
+ol = OrderedList
+li = ListItem
+a = Anchor
+br = Break
+hr = HorizontalRule

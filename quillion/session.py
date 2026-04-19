@@ -86,7 +86,9 @@ class ComponentSerializer:
     def __init__(self, event_manager: EventManager) -> None:
         self._events = event_manager
 
-    def serialize(self, comp: "Component", parent_id: Optional[str] = None) -> Dict[str, Any]:
+    def serialize(
+        self, comp: "Component", parent_id: Optional[str] = None
+    ) -> Dict[str, Any]:
         node: Dict[str, Any] = {
             "id": comp._id,
             "tag": comp.tag_name,

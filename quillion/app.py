@@ -49,7 +49,7 @@ class App:
     def _index_html_path(self) -> Optional[str]:
         local_path = os.path.join(os.getcwd(), ".q", "index.html")
         return local_path
-    
+
     def set_default_two_way_component(self, cls: Type["TwoWayBindingElement"]) -> "App":
         ctx.default_two_way_class = cls
         return self
@@ -64,7 +64,7 @@ class App:
         return self
 
     def static(self, url_prefix: str, directory: str) -> "App":
-        prefix = ("/" + url_prefix.strip("/") + "/")
+        prefix = "/" + url_prefix.strip("/") + "/"
         self._static_dirs.append((prefix, os.path.abspath(directory)))
         return self
 
@@ -72,6 +72,7 @@ class App:
         def decorator(f: Callable[[], "Component"]) -> Callable[[], "Component"]:
             self.routes[path] = f
             return f
+
         return decorator
 
     async def _delayed_process(self, session: "Session") -> None:
@@ -86,6 +87,7 @@ class App:
 
     async def _ws_handler(self, ws: Any, path: Optional[str] = None) -> None:
         from .session import Session as _Session
+
         session = _Session(ws, self)
         self.sessions[ws] = session
         token = ctx.current_session.set(session)
@@ -115,7 +117,7 @@ class App:
             async with serve(self._ws_handler, host, port):
                 print_banner(host, http_port, port, watch or "app")
                 if watch:
-                    abs_watch   = os.path.abspath(watch)
+                    abs_watch = os.path.abspath(watch)
                     module_name = os.path.splitext(os.path.basename(abs_watch))[0]
                     asyncio.create_task(watch_and_reload(self, abs_watch, module_name))
                 await asyncio.Future()
@@ -123,5 +125,5 @@ class App:
         asyncio.run(main())
 
 
-app  = App()
+app = App()
 page = app.page

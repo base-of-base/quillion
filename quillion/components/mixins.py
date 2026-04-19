@@ -19,8 +19,8 @@ class TextMixin:
     content: str
 
     def __init__(self, *parts: Any, **kwargs: Any) -> None:
-        self._parts  = parts
-        self._vars   = [p for p in parts if hasattr(p, "observe")]
+        self._parts = parts
+        self._vars = [p for p in parts if hasattr(p, "observe")]
         self.content = "".join(str(p) for p in parts)
         super().__init__(**kwargs)
 

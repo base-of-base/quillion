@@ -10,17 +10,18 @@ from typing import Optional
 
 class _C:
     """ANSI colour codes."""
-    RESET    = "\033[0m"
-    BOLD     = "\033[1m"
-    DIM      = "\033[2m"
-    CYAN     = "\033[36m"
-    GREEN    = "\033[32m"
-    YELLOW   = "\033[33m"
-    RED      = "\033[31m"
-    WHITE    = "\033[97m"
-    MAGENTA  = "\033[35m"
+
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+    CYAN = "\033[36m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    RED = "\033[31m"
+    WHITE = "\033[97m"
+    MAGENTA = "\033[35m"
     BG_GREEN = "\033[42m"
-    BLACK    = "\033[30m"
+    BLACK = "\033[30m"
 
     @staticmethod
     def supported() -> bool:
@@ -37,7 +38,7 @@ startup_time: Optional[float] = None
 def print_banner(host: str, http_port: int, ws_port: int, target: str) -> None:
     c = _C.supported()
     badge = _clr(_C.BG_GREEN + _C.BLACK + _C.BOLD, " q ") if c else "[q]"
-    url   = f"http://{host}:{http_port}"
+    url = f"http://{host}:{http_port}"
 
     if startup_time is not None:
         elapsed = time.time() - startup_time
@@ -57,16 +58,14 @@ def print_banner(host: str, http_port: int, ws_port: int, target: str) -> None:
     print(f"  {_clr(_C.DIM, 'local')}    {_clr(_C.GREEN, url)}")
     print(f"  {_clr(_C.DIM, 'ws')}       {_clr(_C.GREEN, f'ws://{host}:{ws_port}')}")
     print()
-    print(
-        f"  {_clr(_C.DIM, 'ready in')} {_clr(_C.GREEN, time_str)}"
-    )
+    print(f"  {_clr(_C.DIM, 'ready in')} {_clr(_C.GREEN, time_str)}")
     print()
 
 
 def print_reload(filename: str, elapsed_ms: float) -> None:
-    tag  = _clr(_C.GREEN + _C.BOLD, "~") if _C.supported() else "~"
+    tag = _clr(_C.GREEN + _C.BOLD, "~") if _C.supported() else "~"
     name = _clr(_C.WHITE, filename)
-    ms   = _clr(_C.DIM, f"{elapsed_ms:.1f}ms")
+    ms = _clr(_C.DIM, f"{elapsed_ms:.1f}ms")
     print(f"  {tag}  {name}  {ms}")
 
 

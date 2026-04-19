@@ -65,7 +65,6 @@ class Var:
     def __str__(self) -> str:
         return str(self.value)
 
-
     def __call__(self, *args, as_component=None, **kwargs) -> "Component":
         from .components.two_way import TwoWayBindingElement
 
@@ -78,7 +77,9 @@ class Var:
             elif issubclass(as_component, TwoWayBindingElement):
                 comp_cls = as_component
             else:
-                raise TypeError("as_component must be a string alias or TwoWayBindingElement subclass")
+                raise TypeError(
+                    "as_component must be a string alias or TwoWayBindingElement subclass"
+                )
         else:
             if ctx.default_two_way_class is None:
                 raise RuntimeError("No default two-way component registered.")

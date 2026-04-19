@@ -23,7 +23,7 @@ class InputComponent(TwoWayBindingElement):
     ) -> None:
         super().__init__(bind_var=bind_var, **kwargs)
         self.placeholder = placeholder
-        self.type        = type
+        self.type = type
 
     def get_props(self) -> Dict[str, Any]:
         props: Dict[str, Any] = {"value": self.get_current_value(), "type": self.type}
@@ -35,5 +35,6 @@ class InputComponent(TwoWayBindingElement):
     def on_input(self, event_data: Optional[Dict] = None) -> None:
         if event_data and "value" in event_data:
             self.update_var_from_event(event_data["value"])
+
 
 input = InputComponent

@@ -19,7 +19,9 @@ class TwoWayComponentMeta(UIComponentMeta):
     def __new__(mcs, name, bases, attrs):
         cls = super().__new__(mcs, name, bases, attrs)
         if name != "TwoWayBindingElement" and issubclass(cls, TwoWayBindingElement):
-            alias = getattr(cls, "_component_alias", None) or name.lower().removesuffix("component")
+            alias = getattr(cls, "_component_alias", None) or name.lower().removesuffix(
+                "component"
+            )
             ctx.TWO_WAY_REGISTRY[alias] = cls
             if getattr(cls, "_is_default", False):
                 ctx.default_two_way_class = cls
@@ -31,8 +33,8 @@ class TwoWayBindingElement(Component, metaclass=TwoWayComponentMeta):
     _updating_from_var: bool
 
     def __init__(self, bind_var: Optional["Var"] = None, **kwargs):
-        self._bind_var           = bind_var
-        self._updating_from_var  = False
+        self._bind_var = bind_var
+        self._updating_from_var = False
         super().__init__(**kwargs)
 
     def _post_init(self) -> None:
@@ -56,9 +58,9 @@ class TwoWayBindingElement(Component, metaclass=TwoWayComponentMeta):
             return
         cur = self._bind_var.value
         if isinstance(cur, int):
-            event_value = int(event_value) if event_value else 0 # type: ignore
+            event_value = int(event_value) if event_value else 0  # type: ignore
         elif isinstance(cur, float):
-            event_value = float(event_value) if event_value else 0.0 # type: ignore
+            event_value = float(event_value) if event_value else 0.0  # type: ignore
         elif isinstance(cur, bool):
-            event_value = event_value.lower() in ("true", "1", "yes", "on") # type: ignore
+            event_value = event_value.lower() in ("true", "1", "yes", "on")  # type: ignore
         self._bind_var.value = event_value

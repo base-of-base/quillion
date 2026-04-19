@@ -13,9 +13,29 @@ from .cli import print_err
 
 
 _STATIC_EXTENSIONS = {
-    ".js", ".css", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico",
-    ".woff", ".woff2", ".ttf", ".eot", ".otf", ".map", ".json",
-    ".xml", ".txt", ".pdf", ".webp", ".mp4", ".webm", ".mp3", ".wav",
+    ".js",
+    ".css",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".svg",
+    ".ico",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".eot",
+    ".otf",
+    ".map",
+    ".json",
+    ".xml",
+    ".txt",
+    ".pdf",
+    ".webp",
+    ".mp4",
+    ".webm",
+    ".mp3",
+    ".wav",
 }
 
 
@@ -29,7 +49,7 @@ class StaticFileHandler:
         for url_prefix, fs_dir in self.static_dirs:
             if not path.startswith(url_prefix):
                 continue
-            relative = path[len(url_prefix):].lstrip("/") or "index.html"
+            relative = path[len(url_prefix) :].lstrip("/") or "index.html"
             file_path = os.path.normpath(os.path.join(fs_dir, relative))
             if not file_path.startswith(os.path.normpath(fs_dir)):
                 continue
@@ -76,7 +96,9 @@ async def http_handler(
 
         method, path = parts[0], parts[1].split("?")[0]
 
-        async def send(status: int, content: Union[str, bytes], ct: Optional[str] = "text/html") -> None:
+        async def send(
+            status: int, content: Union[str, bytes], ct: Optional[str] = "text/html"
+        ) -> None:
             if isinstance(content, str):
                 content = content.encode("utf-8")
             writer.write(f"HTTP/1.1 {status}\r\n".encode())

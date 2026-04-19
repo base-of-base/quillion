@@ -18,15 +18,16 @@ def main() -> None:
 
     if "quillion" not in sys.modules:
         import quillion
+
         sys.modules.setdefault("quillion", quillion)
 
     parser = argparse.ArgumentParser(prog="quillion", description="Quillion dev server")
-    sub    = parser.add_subparsers(dest="command")
+    sub = parser.add_subparsers(dest="command")
 
     run_p = sub.add_parser("run", help="start the dev server")
     run_p.add_argument("target", help="python file to run")
-    run_p.add_argument("--host",      default="localhost")
-    run_p.add_argument("--port",      type=int, default=8765, help="WebSocket port")
+    run_p.add_argument("--host", default="localhost")
+    run_p.add_argument("--port", type=int, default=8765, help="WebSocket port")
     run_p.add_argument("--http-port", type=int, default=8080, help="HTTP port")
 
     args = parser.parse_args()

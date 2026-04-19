@@ -2,7 +2,6 @@
 <p align="center">Build reactive web UIs in pure Python.</p>
 
 
-
 <p align="center">
   <a href="https://pypi.org/project/quillion"><img src="https://img.shields.io/pypi/v/quillion?color=black&label=pypi" /></a>
   <a href="docs/"><img src="https://img.shields.io/badge/docs-→-black" /></a>

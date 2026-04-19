@@ -15,8 +15,8 @@ from .. import _context as ctx
 
 def snake_to_camel(snake_str: str) -> str:
     """Convert snake_case to camelCase."""
-    components = snake_str.split('_')
-    return components[0] + ''.join(x.title() for x in components[1:])
+    components = snake_str.split("_")
+    return components[0] + "".join(x.title() for x in components[1:])
 
 
 def to_css_property_name(key: str) -> str:
@@ -25,10 +25,10 @@ def to_css_property_name(key: str) -> str:
     Handles: camelCase, snake_case, and direct CSS properties.
     """
     # If it's already snake_case, convert to camelCase first
-    if '_' in key:
+    if "_" in key:
         key = snake_to_camel(key)
-    
-    kebab = re.sub(r'([A-Z])', r'-\1', key).lower()
+
+    kebab = re.sub(r"([A-Z])", r"-\1", key).lower()
     return kebab
 
 
@@ -37,13 +37,26 @@ class UIComponentMeta(type):
 
     def __call__(cls, *args, **kwargs):
         style: Dict[str, Any] = {}
-        class_name: Optional[str] = kwargs.pop("class_name", None) or kwargs.pop("className", None)
+        class_name: Optional[str] = kwargs.pop("class_name", None) or kwargs.pop(
+            "className", None
+        )
         other: Dict[str, Any] = {}
 
         reserved = {
-            "children", "bind_var", "on_click", "level", "placeholder",
-            "type", "path", "label", "class_name", "className",
-            "src", "alt", "href", "rel",
+            "children",
+            "bind_var",
+            "on_click",
+            "level",
+            "placeholder",
+            "type",
+            "path",
+            "label",
+            "class_name",
+            "className",
+            "src",
+            "alt",
+            "href",
+            "rel",
         }
         for key, value in kwargs.items():
             if key not in reserved and not key.startswith("on_"):
@@ -52,14 +65,14 @@ class UIComponentMeta(type):
                 other[key] = value
 
         inst = super().__call__(*args, **other)
-        inst._id         = str(uuid.uuid4())[:8]
+        inst._id = str(uuid.uuid4())[:8]
         inst._event_handlers = {}
-        inst._style      = style
+        inst._style = style
         inst._class_name = class_name
 
         for attr in dir(inst):
             if attr.startswith("on_") and callable(getattr(inst, attr)):
-                original   = getattr(inst, attr)
+                original = getattr(inst, attr)
                 event_name = attr[3:]
                 inst._event_handlers[event_name] = original
 
@@ -71,8 +84,11 @@ class UIComponentMeta(type):
                             result = orig()
                         session = ctx.current_session.get()
                         if session and ctx.quillion_app:
-                            asyncio.create_task(ctx.quillion_app._delayed_process(session))
+                            asyncio.create_task(
+                                ctx.quillion_app._delayed_process(session)
+                            )
                         return result
+
                     return wrapper
 
                 setattr(inst, attr, _wrap(original, event_name))
@@ -91,10 +107,10 @@ class Component(metaclass=UIComponentMeta):
     _class_name: Optional[str]
 
     def __init__(self, **kwargs):
-        self._id             = ""
+        self._id = ""
         self._event_handlers = {}
-        self._style          = {}
-        self._class_name     = None
+        self._style = {}
+        self._class_name = None
         for k, v in kwargs.items():
             setattr(self, k, v)
 
