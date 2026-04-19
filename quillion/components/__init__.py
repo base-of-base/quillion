@@ -9,6 +9,6 @@ from .elements import (
     UnorderedList, OrderedList, ListItem, Anchor, Break, HorizontalRule,
     container, text, button, heading, div, span,
     navlink, image, link, script, style,
-    ul, ol, li, a, br, hr,
+    ul, ol, li, a, br, hr
 )
-from .input import InputComponent
+from .input import InputComponent, input
