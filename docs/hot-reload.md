@@ -67,7 +67,7 @@ The connected browser sessions are not touched — they continue showing the las
 
 ## Reloading multiple files
 
-The watcher only tracks the single file passed to `quillion run`. If you split your app across multiple files, changes to imported modules will not trigger a reload automatically.
+The watcher only tracks the single file passed to `q run`. If you split your app across multiple files, changes to imported modules will not trigger a reload automatically.
 
 **Workaround:** touch your main file after saving a dependency:
 

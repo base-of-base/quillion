@@ -39,7 +39,7 @@ app.run()
 Start the dev server:
 
 ```
-quillion run app.py
+q run app.py
 ```
 
 Open [http://localhost:8080](http://localhost:8080). The counter updates in real time without a page reload.
@@ -84,7 +84,7 @@ For larger apps you can split pages across multiple files and import them into `
 ## CLI reference
 
 ```
-quillion run <file>           start the dev server with hot reload
+q run <file>           start the dev server with hot reload
   --host    HOST              bind address (default: localhost)
   --port    PORT              WebSocket port (default: 8765)
   --http-port PORT            HTTP port (default: 8080)

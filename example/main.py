@@ -6,7 +6,7 @@ counter = var(0)
 @page("/")
 def home():
     return container(
-        heading("Demo", level=1),
+        heading("Quillion App", level=1),
         div(
             text("Counter: ", counter),
             button("Increment", on_click=lambda: counter + 1),
