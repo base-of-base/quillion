@@ -32,7 +32,7 @@ q run app.py
 
 ---
 
-## install
+## Install
 
 ```
 pip install quillion
@@ -42,4 +42,4 @@ Requires Python 3.11+ and a browser.
 
 ---
 
-MIT
+[MIT](LICENSE)
