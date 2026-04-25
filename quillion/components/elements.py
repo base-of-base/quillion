@@ -15,7 +15,7 @@ def _wrap_children(children) -> List[Component]:
     return [Text(c) if isinstance(c, str) else c for c in children]
 
 
-class Container(Component):
+class Div(Component):
     tag_name = "div"
 
     def __init__(self, *children: Any, **kwargs: Any) -> None:
@@ -48,10 +48,6 @@ class Heading(TextMixin, Component):
         self.level = min(max(level, 1), 6)
         self.tag_name = f"h{self.level}"
         super().__init__(*parts, **kwargs)
-
-
-class Div(Container):
-    tag_name = "div"
 
 
 class Span(Text):
@@ -198,7 +194,6 @@ class HorizontalRule(Component):
         return []
 
 
-container = Container
 text = Text
 button = Button
 heading = Heading

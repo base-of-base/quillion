@@ -3,10 +3,10 @@
 
 
 <p align="center">
-  <a href="https://pypi.org/project/quillion"><img src="https://img.shields.io/pypi/v/quillion?color=black&label=pypi" /></a>
-  <a href="docs/"><img src="https://img.shields.io/badge/docs-→-black" /></a>
-  <img src="https://img.shields.io/badge/python-3.11+-black" />
-  <img src="https://img.shields.io/badge/license-MIT-black" />
+  <a href="https://pypi.org/project/quillion"><img src="https://img.shields.io/pypi/v/quillion?color=54cb8f&label=pypi" /></a>
+  <a href="docs/"><img src="https://img.shields.io/badge/docs-→-54cb8f" /></a>
+  <img src="https://img.shields.io/badge/python-3.11+-54cb8f" />
+  <img src="https://img.shields.io/badge/license-MIT-54cb8f" />
 </p>
 
 ---
@@ -25,6 +25,8 @@ def index():
 
 app.run()
 ```
+
+#### And run it with:
 
 ```
 q run app.py

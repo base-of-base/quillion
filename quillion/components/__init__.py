@@ -5,7 +5,6 @@ Component sub-package.
 from .base import Component
 from .two_way import TwoWayBindingElement
 from .elements import (
-    Container,
     Text,
     Button,
     Heading,
@@ -22,7 +21,6 @@ from .elements import (
     Anchor,
     Break,
     HorizontalRule,
-    container,
     text,
     button,
     heading,

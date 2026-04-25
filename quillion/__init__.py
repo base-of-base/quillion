@@ -3,11 +3,10 @@ Quillion — a lightweight reactive UI framework for Python.
 """
 
 from .app import App, app, page
-from .var import Var, var
+from .var import Var, var, auto_name_vars
 from .components.base import Component
 from .components.two_way import TwoWayBindingElement
 from .components.elements import (
-    Container,
     Text,
     Button,
     Heading,
@@ -24,8 +23,6 @@ from .components.elements import (
     Anchor,
     Break,
     HorizontalRule,
-    # lowercase aliases
-    container,
     text,
     button,
     heading,
@@ -43,7 +40,7 @@ from .components.elements import (
     br,
     hr,
 )
-from .components.input import InputComponent
+from .components.input import InputComponent, input
 
 __all__ = [
     "App",
@@ -51,9 +48,9 @@ __all__ = [
     "page",
     "Var",
     "var",
+    "auto_name_vars",
     "Component",
     "TwoWayBindingElement",
-    "Container",
     "Text",
     "Button",
     "Heading",
@@ -71,7 +68,6 @@ __all__ = [
     "Break",
     "HorizontalRule",
     "InputComponent",
-    "container",
     "text",
     "button",
     "heading",
@@ -88,4 +84,5 @@ __all__ = [
     "a",
     "br",
     "hr",
+    "input"
 ]
