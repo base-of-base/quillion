@@ -2,19 +2,24 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, List
+from typing import TYPE_CHECKING, Any, Callable, List
 from weakref import WeakKeyDictionary
-from ..components.base import Component
+
+if TYPE_CHECKING:
+    from ..components.base import Component
+    from .var import Var
+
 from .. import _context as ctx
 from .reactive_expression import ReactiveExpression
 from ._safe_op import _safe_op
-from .var import Var
 
 __all__ = ["ComputedValue", "_create_computed"]
 
 
 def _create_computed(op_func: Callable, a: Any, b: Any) -> "ComputedValue":
     """Create a computed value from a binary operation."""
+    from .var import Var
+
     deps = []
     if hasattr(a, '_dependencies'):
         deps.extend(a._dependencies)  # type: ignore

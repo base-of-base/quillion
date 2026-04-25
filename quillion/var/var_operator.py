@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 
 from .reactive_expression import ReactiveExpression
 from .computed_value import ComputedValue, _create_computed
+import operator
 
 __all__ = ["VarOperator"]
 
