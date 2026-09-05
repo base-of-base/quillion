@@ -8,19 +8,18 @@ from typing import Any, Callable, Dict, List, Optional
 
 from .. import _context as ctx
 from .base import Component
-from .mixins import TextMixin
+from .mixins import TextMixin, ReactiveContainerMixin
 
 
 def _wrap_children(children) -> List[Component]:
     return [Text(c) if isinstance(c, str) else c for c in children]
 
 
-class Div(Component):
+class Div(ReactiveContainerMixin, Component):
     tag_name = "div"
 
     def __init__(self, *children: Any, **kwargs: Any) -> None:
-        self.children = _wrap_children(children)
-        super().__init__(**kwargs)
+        super().__init__(*children, **kwargs)
 
 
 class Text(TextMixin, Component):
@@ -50,7 +49,7 @@ class Heading(TextMixin, Component):
         super().__init__(*parts, **kwargs)
 
 
-class Span(Text):
+class Span(ReactiveContainerMixin, Text):
     tag_name = "span"
 
 

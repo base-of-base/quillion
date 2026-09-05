@@ -15,7 +15,6 @@ from . import _context as ctx
 from .cli import print_banner
 from .server import http_handler
 from .watcher import watch_and_reload
-# Правильные импорты из var.var
 from .var.var import _ReactiveVarTransformer, auto_name_vars
 
 if TYPE_CHECKING:
@@ -143,7 +142,6 @@ class App:
         if self._is_loading:
             return
 
-        # Применяем трансформер к __main__ перед запуском сервера
         self._ensure_main_transformed()
 
         self._host = host

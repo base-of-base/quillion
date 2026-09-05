@@ -21,18 +21,15 @@ class ReactiveProxy:
     
     def __getattribute__(self, name: str) -> Any:
         """Intercept attribute access to wrap methods."""
-        # Специальные атрибуты прокси
         if name.startswith('_') or name in ('_target', '_on_change', '_wrap_value'):
             return super().__getattribute__(name)
         
         target = super().__getattribute__('_target')
         attr = getattr(target, name)
         
-        # Оборачиваем только методы списков/словарей (кроме __setitem__ и __delitem__)
         if callable(attr) and name in ('append', 'extend', 'insert', 'remove', 'pop',
                                         'clear', 'sort', 'reverse', 'update', 
                                         'setdefault', 'popitem'):
-            # Сохраняем ссылку на _on_change через замыкание
             on_change = super().__getattribute__('_on_change')
             def wrapped(*args, **kwargs):
                 result = attr(*args, **kwargs)
@@ -57,7 +54,6 @@ class ReactiveProxy:
         return self._wrap_value(item)
     
     def __setitem__(self, key: Any, value: Any) -> None:
-        """Set item and notify."""
         target = self._target
         old = target.get(key) if isinstance(target, dict) else target[key] if isinstance(target, list) and key < len(target) else None
         target[key] = value

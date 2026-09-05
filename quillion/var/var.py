@@ -29,6 +29,7 @@ class Var(ReactiveExpression):
     """Reactive variable that tracks changes and notifies observers."""
     _key: str
     _initial: Any
+    _factory: Any
     _observers: WeakKeyDictionary
     _raw_callbacks: List[Callable]
     _component_factory: Optional[Callable[..., "Component"]]
@@ -37,11 +38,22 @@ class Var(ReactiveExpression):
     def __init__(self, initial_value: Any = "") -> None:
         """Initialize a reactive variable with an optional initial value."""
         self._key = str(uuid.uuid4())
-        self._initial = self._wrap_value(initial_value)
+        self._initial = initial_value
         self._observers = WeakKeyDictionary()
         self._raw_callbacks = []
         self._component_factory = None
         self._auto_named = False
+        
+        if isinstance(initial_value, (list, dict, set)):
+            self._factory = lambda: type(initial_value)()
+        elif hasattr(initial_value, "__class__") and hasattr(initial_value, "__init__"):
+            try:
+                self._factory = lambda: initial_value.__class__()
+            except:
+                self._factory = lambda: initial_value
+        else:
+                self._factory = lambda: initial_value
+        
 
     def _set_stable_key(self, name: str) -> None:
         """Set a stable key for this variable based on a name."""
@@ -53,13 +65,10 @@ class Var(ReactiveExpression):
 
     def _wrap_value(self, value: Any) -> Any:
         """Wrap mutable values in ReactiveProxy to track mutations."""
-        # Не оборачиваем примитивные типы
         if isinstance(value, (str, int, float, bool, type(None), bytes)):
             return value
-        # Оборачиваем всё остальное (списки, словари, пользовательские классы)
         if isinstance(value, (list, dict, set)):
             return ReactiveProxy(value, self._notify_self)
-        # Для пользовательских объектов
         if isinstance(value, object):
             return ReactiveProxy(value, self._notify_self)
         return value
@@ -71,11 +80,11 @@ class Var(ReactiveExpression):
         if session is None:
             return self._initial
         
-        raw_value = session.state.get_var_value(self._key, self._initial)
+        raw_value = session.state.get_var_value(self._key, None)
         
-        # Если значение не обёрнуто в прокси, оборачиваем
-        if not isinstance(raw_value, ReactiveProxy):
-            wrapped = self._wrap_value(raw_value)
+        if raw_value is None:
+            new_value = self._factory()
+            wrapped = self._wrap_value(new_value)
             session.state.set_var_value(self._key, wrapped)
             return wrapped
         
@@ -108,8 +117,7 @@ class Var(ReactiveExpression):
     def _notify_self(self) -> None:
         """Notify all observers of a change."""
         session = ctx.current_session.get()
-        if session is not None:
-            self._notify(session)
+        self._notify(session)
 
     def __bool__(self) -> bool:
         """Boolean conversion."""
@@ -193,6 +201,54 @@ class Var(ReactiveExpression):
         return unsubscribe
 
 
+    def __getattr__(self, name: str) -> Any:
+        reserved = {
+            '_key', '_initial', '_factory', '_observers', '_raw_callbacks',
+            '_component_factory', '_auto_named', 'value', 'set', 'update',
+            'append', 'observe', 'bind_with', 'map', '_notify_self',
+            '_notify', '_add_raw_callback', '_set_stable_key', '_wrap_value'
+        }
+        if name.startswith('_') or name in reserved:
+            raise AttributeError(name)
+        
+        value = self.value
+        
+        if not hasattr(value, name):
+            raise AttributeError(f"'Var' object has no attribute '{name}'")
+        
+        attr = getattr(value, name)
+        
+        if not callable(attr):
+            return attr
+        
+        def wrapper(*args, **kwargs):
+            result = attr(*args, **kwargs)
+            self._notify_self()
+            return result
+        
+        return wrapper
+
+    def __getitem__(self, key: Any) -> Any:
+        return self.value[key]
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        self.value[key] = value
+        self._notify_self()
+
+    def __delitem__(self, key: Any) -> None:
+        del self.value[key]
+        self._notify_self()
+
+    def __iter__(self):
+        return iter(self.value)
+
+    def __len__(self):
+        return len(self.value)
+
+    def __contains__(self, item: Any) -> bool:
+        return item in self.value
+
+
 def var(initial_value: Any = "", *, name: Optional[str] = None) -> Var:
     """Create a reactive variable with an optional stable name."""
     v = Var(initial_value)
@@ -207,8 +263,6 @@ def auto_name_vars(module: Any) -> None:
         if isinstance(obj, Var) and not obj._auto_named:
             obj._set_stable_key(var_name)
 
-
-# ── AST import hook: transform `counter = 42` to `counter.set(42)` ──
 
 class _ReactiveVarTransformer(ast.NodeTransformer):
     """Finds reactive var names from `counter = var(...)` definitions,
@@ -253,7 +307,6 @@ class _ReactiveVarTransformer(ast.NodeTransformer):
         """Recursively process statements, replacing reactive var assignments."""
         for node in body:
             if isinstance(node, ast.Assign):
-                # Replace in-place via parent handling in caller
                 pass
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 self._process_body(node.body)
@@ -273,7 +326,6 @@ class _ReactiveVarTransformer(ast.NodeTransformer):
                 self._process_body(node.body)
             elif isinstance(node, ast.ExceptHandler):
                 self._process_body(node.body)
-        # Second pass: replace assignments in this body level
         for i, node in enumerate(body):
             if isinstance(node, ast.Assign):
                 replacement = self._replace_assign(node)
@@ -281,11 +333,9 @@ class _ReactiveVarTransformer(ast.NodeTransformer):
         return body
 
     def transform(self, tree: ast.Module) -> ast.Module:
-        # First pass: find all reactive var names
         for node in ast.walk(tree):
             if isinstance(node, ast.Assign):
                 self.visit_Assign(node)
-        # Second pass: recursively replace assignments everywhere
         tree.body = self._process_body(tree.body)
         return tree
 
@@ -333,7 +383,6 @@ class _ReactiveVarLoader(importlib.abc.Loader):
         exec(code, module.__dict__)
 
 
-# Save reference to original PathFinder to avoid recursion
 _PathFinder_find_spec = importlib.machinery.PathFinder.find_spec.__func__
 
 
@@ -348,7 +397,6 @@ class _ReactiveVarFinder:
         sys.meta_path.insert(0, cls())
 
     def find_spec(self, fullname: str, path=None, target=None):
-        # Only intercept non-quillion modules (user code)
         if 'quillion' in fullname:
             return None
         try:
@@ -357,7 +405,6 @@ class _ReactiveVarFinder:
             return None
         if spec is None or spec.loader is None or isinstance(spec.loader, _ReactiveVarLoader):
             return None
-        # Skip modules without Python source (built-in, frozen, C extensions)
         loader_name = type(spec.loader).__name__
         if loader_name in ('BuiltinImporter', 'FrozenImporter', 'ExtensionFileLoader'):
             return None

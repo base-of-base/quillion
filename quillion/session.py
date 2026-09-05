@@ -41,9 +41,21 @@ class UpdateManager:
         self._pending.add(comp)
 
     async def flush_updates(self, serializer: "ComponentSerializer") -> None:
+        """Отправляет обновления компонентов, включая изменения детей."""
         if not self._pending:
             return
-        updates = [{"id": c._id, "props": c.get_props()} for c in self._pending]
+        
+        updates = []
+        for comp in self._pending:
+            update = {
+                "id": comp._id,
+                "props": comp.get_props()
+            }
+            children = comp.get_children()
+            if children:
+                update["children"] = [serializer.serialize(child, comp._id) for child in children]
+            updates.append(update)
+        
         self._pending.clear()
         await self._ws.send(json.dumps({"updates": updates}))
 
@@ -79,7 +91,11 @@ class EventManager:
     def handle(self, eid: str, event_data: Dict[str, Any], session: "Session") -> None:
         if eid in self._handlers:
             comp, evt_name = self._handlers[eid]
-            getattr(comp, f"on_{evt_name}")(event_data)
+            try:
+                getattr(comp, f"on_{evt_name}")(event_data)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
 
 
 class ComponentSerializer:
@@ -142,9 +158,16 @@ class Session:
 
     async def process_messages(self) -> None:
         async for msg in self.ws:
-            data = json.loads(msg)
-            if data.get("type") == "event":
-                self.events.handle(data.get("event_id"), data.get("data", {}), self)
-                await self.updater.flush_updates(self.serializer)
-            elif data.get("type") == "navigate":
-                await self.navigator.navigate_to(data.get("path", "/"), self.serializer)
+            token = ctx.current_session.set(self)
+            try:
+                data = json.loads(msg)
+                if data.get("type") == "event":
+                    self.events.handle(data.get("event_id"), data.get("data", {}), self)
+                    await self.updater.flush_updates(self.serializer)
+                elif data.get("type") == "navigate":
+                    await self.navigator.navigate_to(data.get("path", "/"), self.serializer)
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+            finally:
+                ctx.current_session.reset(token)

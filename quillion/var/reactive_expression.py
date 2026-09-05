@@ -25,7 +25,6 @@ class ReactiveExpression:
         deps = self._dependencies if hasattr(self, '_dependencies') else [self]  # type: ignore
         return ComputedValue(lambda: func(self.value), deps)  # type: ignore
 
-    # ----- unary operators -----
     def __neg__(self) -> "ComputedValue":
         """Negation operator."""
         from .computed_value import _create_computed
@@ -46,7 +45,6 @@ class ReactiveExpression:
         from .computed_value import _create_computed
         return _create_computed(operator.invert, 0, self)  # type: ignore
 
-    # ----- conversions -----
     def __complex__(self) -> complex:
         """Convert to complex number."""
         return complex(self.value)  # type: ignore
@@ -55,7 +53,6 @@ class ReactiveExpression:
         """Convert to index for slicing."""
         return operator.index(self.value)  # type: ignore
 
-    # ----- rounding -----
     def __round__(self, ndigits: Optional[int] = None) -> "ComputedValue":
         """Round the value to specified digits."""
         from .computed_value import ComputedValue, _create_computed
@@ -82,7 +79,6 @@ class ReactiveExpression:
         from .computed_value import _create_computed
         return _create_computed(math.trunc, self, 0)  # type: ignore
 
-    # ----- binary operators -----
     def __add__(self, other: Any) -> "VarOperator":
         """Addition operator."""
         from .var_operator import VarOperator
@@ -179,7 +175,6 @@ class ReactiveExpression:
             return VarOperator(self, lambda a, b: b(a), other)  # type: ignore
         return VarOperator(self, lambda a, b: b, other)  # type: ignore
 
-    # ----- comparisons -----
     def __eq__(self, other: Any) -> "ComputedValue":
         """Equality operator."""
         from .computed_value import _create_computed

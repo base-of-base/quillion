@@ -87,7 +87,6 @@ def main() -> None:
         if target_dir not in sys.path:
             sys.path.insert(0, target_dir)
 
-        # ── ИЗМЕНЁННАЯ ЗАГРУЗКА через importlib.import_module ──
         module_name = os.path.splitext(os.path.basename(target))[0]
 
         try:
@@ -96,7 +95,6 @@ def main() -> None:
             cli.print_err(f"Could not import module {module_name}: {e}")
             sys.exit(1)
 
-        # Применяем auto_name_vars для стабильных ключей (если нужно)
         auto_name_vars(mod)
 
         app._is_loading = False

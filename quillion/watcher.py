@@ -80,7 +80,6 @@ def _find_module_file(module_name: str, base_path: str) -> str | None:
 
 
 def _get_dependent_files(target_path: str) -> Set[str]:
-    """Возвращает все зависимые файлы, включая target"""
     dependent_files = set()
     processed = set()
 
