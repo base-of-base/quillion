@@ -5,6 +5,8 @@ App: the central object that owns routes, sessions, and servers.
 from __future__ import annotations
 import asyncio
 import os
+import ast
+import __main__ as main_module
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TYPE_CHECKING
 
 from websockets.server import serve
@@ -13,6 +15,8 @@ from . import _context as ctx
 from .cli import print_banner
 from .server import http_handler
 from .watcher import watch_and_reload
+# Правильные импорты из var.var
+from .var.var import _ReactiveVarTransformer, auto_name_vars
 
 if TYPE_CHECKING:
     from .components.base import Component
@@ -72,8 +76,39 @@ class App:
         def decorator(f: Callable[[], "Component"]) -> Callable[[], "Component"]:
             self.routes[path] = f
             return f
-
         return decorator
+
+    def _ensure_main_transformed(self) -> None:
+        """
+        Применяет AST‑трансформер к __main__ и перезагружает его глобалы.
+        Это нужно, чтобы реактивные присваивания внутри функций работали
+        при первом запуске (без hot‑reload).
+        """
+        if hasattr(main_module, "_reactive_transformed"):
+            return
+
+        main_file = getattr(main_module, "__file__", None)
+        if not main_file or not main_file.endswith(".py"):
+            return
+        if not os.path.exists(main_file):
+            return
+
+        try:
+            with open(main_file, "r", encoding="utf-8") as f:
+                source = f.read()
+
+            tree = ast.parse(source, filename=main_file)
+            transformer = _ReactiveVarTransformer()
+            transformer.transform(tree)
+            ast.fix_missing_locations(tree)
+            code = compile(tree, main_file, "exec")
+
+            exec(code, main_module.__dict__)
+            main_module._reactive_transformed = True
+            auto_name_vars(main_module)
+
+        except Exception as e:
+            print(f"[Quillion] Could not apply reactive transform to __main__: {e}")
 
     async def _delayed_process(self, session: "Session") -> None:
         await session.updater.flush_updates(session.serializer)
@@ -107,6 +142,9 @@ class App:
     ) -> None:
         if self._is_loading:
             return
+
+        # Применяем трансформер к __main__ перед запуском сервера
+        self._ensure_main_transformed()
 
         self._host = host
         self._ws_port = port

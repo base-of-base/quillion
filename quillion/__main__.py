@@ -3,7 +3,7 @@ Entry point for `python -m quillion`.
 """
 
 import argparse
-import importlib.util
+import importlib
 import os
 import sys
 import time
@@ -23,7 +23,7 @@ def main() -> None:
         sys.modules.setdefault("quillion", quillion)
 
     parser = argparse.ArgumentParser(
-        prog="quillion", 
+        prog="quillion",
         description="Quillion - Reactive Web Framework for Python"
     )
     sub = parser.add_subparsers(dest="command", help="Available commands")
@@ -87,30 +87,25 @@ def main() -> None:
         if target_dir not in sys.path:
             sys.path.insert(0, target_dir)
 
+        # ── ИЗМЕНЁННАЯ ЗАГРУЗКА через importlib.import_module ──
         module_name = os.path.splitext(os.path.basename(target))[0]
 
-        app._is_loading = True
-        spec = importlib.util.spec_from_file_location(module_name, target)
-        if spec is None:
-            cli.print_err(f"Could not load spec for {target}")
+        try:
+            mod = importlib.import_module(module_name)
+        except ImportError as e:
+            cli.print_err(f"Could not import module {module_name}: {e}")
             sys.exit(1)
-        
-        mod = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = mod
-        
-        if spec.loader is None:
-            cli.print_err(f"Loader is None for {target}")
-            sys.exit(1)
-        
-        spec.loader.exec_module(mod)
+
+        # Применяем auto_name_vars для стабильных ключей (если нужно)
         auto_name_vars(mod)
+
         app._is_loading = False
 
         try:
             app.run(
-                host=args.host, 
-                port=args.port, 
-                http_port=args.http_port, 
+                host=args.host,
+                port=args.port,
+                http_port=args.http_port,
                 watch=target
             )
         except KeyboardInterrupt:

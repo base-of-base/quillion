@@ -3,7 +3,8 @@ Quillion — a lightweight reactive UI framework for Python.
 """
 
 from .app import App, app, page
-from .var import Var, var, auto_name_vars
+from .var import Var, auto_name_vars, VarNamespace
+var = VarNamespace()
 from .components.base import Component
 from .components.two_way import TwoWayBindingElement
 from .components.elements import (
