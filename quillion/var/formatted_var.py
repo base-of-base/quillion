@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .var import Var
     from ..components.base import Component
+    from .var import Var
 
 __all__ = ["FormattedVar"]
 

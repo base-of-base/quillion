@@ -11,7 +11,7 @@ from pathlib import Path
 
 from . import cli
 from .app import app
-from .project import create_q_project, init_project, is_quillion_project
+from .project import create_q_project, init_project
 from .var import auto_name_vars
 
 
@@ -47,8 +47,7 @@ def main() -> None:
     if args.command == "new":
         project_path = Path(args.path)
         
-        if project_path.exists() and not args.force:
-            if project_path.is_dir() and any(project_path.iterdir()):
+        if project_path.exists() and not args.force and project_path.is_dir() and any(project_path.iterdir()):
                 cli.print_err(f"Directory is not empty: {project_path}")
                 cli.print_info("Use --force to override or choose a different path")
                 sys.exit(1)
@@ -61,19 +60,19 @@ def main() -> None:
         except FileExistsError as e:
             cli.print_err(str(e))
             sys.exit(1)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             cli.print_err(f"Failed to create project: {e}")
             sys.exit(1)
-    
+
     elif args.command == "init":
         try:
             init_project(app_name=args.name)
             cli.print_ok(f"Quillion project initialized in {Path.cwd()}")
-            cli.print_info(f"Run: q run main.py")
+            cli.print_info("Run: q run main.py")
         except FileExistsError as e:
             cli.print_err(str(e))
             sys.exit(1)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             cli.print_err(f"Failed to initialize project: {e}")
             sys.exit(1)
     

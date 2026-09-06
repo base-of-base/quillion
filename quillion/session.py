@@ -4,25 +4,26 @@ NavigationManager, EventManager, ComponentSerializer.
 """
 
 from __future__ import annotations
-import asyncio
+
 import json
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Optional, Set, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from . import _context as ctx
 
 if TYPE_CHECKING:
-    from .components.base import Component
     from .app import App
+    from .components.base import Component
 
 
 @dataclass
 class SessionState:
     session_id: str
-    values: Dict[str, Any] = field(default_factory=dict)
+    values: dict[str, Any] = field(default_factory=dict)
     current_path: str = "/"
-    root_component: Optional["Component"] = None
+    root_component: Component | None = None
     init_sent: bool = False
 
     def get_var_value(self, key: str, default: Any = None) -> Any:
@@ -35,12 +36,12 @@ class SessionState:
 class UpdateManager:
     def __init__(self, websocket: Any) -> None:
         self._ws = websocket
-        self._pending: Set["Component"] = set()
+        self._pending: set[Component] = set()
 
-    def schedule_update(self, comp: "Component") -> None:
+    def schedule_update(self, comp: Component) -> None:
         self._pending.add(comp)
 
-    async def flush_updates(self, serializer: "ComponentSerializer") -> None:
+    async def flush_updates(self, serializer: ComponentSerializer) -> None:
         """Отправляет обновления компонентов, включая изменения детей."""
         if not self._pending:
             return
@@ -63,7 +64,7 @@ class UpdateManager:
 class NavigationManager:
     def __init__(
         self,
-        routes: Dict[str, Callable[[], "Component"]],
+        routes: dict[str, Callable[[], Component]],
         websocket: Any,
         state: SessionState,
     ) -> None:
@@ -71,7 +72,7 @@ class NavigationManager:
         self._ws = websocket
         self._state = state
 
-    async def navigate_to(self, path: str, serializer: "ComponentSerializer") -> None:
+    async def navigate_to(self, path: str, serializer: ComponentSerializer) -> None:
         if path in self._routes:
             self._state.current_path = path
             page = self._routes[path]()
@@ -81,19 +82,19 @@ class NavigationManager:
 
 class EventManager:
     def __init__(self) -> None:
-        self._handlers: Dict[str, Tuple["Component", str]] = {}
+        self._handlers: dict[str, tuple[Component, str]] = {}
 
-    def register(self, comp: "Component", event_name: str) -> str:
+    def register(self, comp: Component, event_name: str) -> str:
         eid = str(uuid.uuid4())[:8]
         self._handlers[eid] = (comp, event_name)
         return eid
 
-    def handle(self, eid: str, event_data: Dict[str, Any], session: "Session") -> None:
+    def handle(self, eid: str, event_data: dict[str, Any], session: Session) -> None:
         if eid in self._handlers:
             comp, evt_name = self._handlers[eid]
             try:
                 getattr(comp, f"on_{evt_name}")(event_data)
-            except Exception as e:
+            except Exception:  # noqa: BLE001
                 import traceback
                 traceback.print_exc()
 
@@ -103,9 +104,9 @@ class ComponentSerializer:
         self._events = event_manager
 
     def serialize(
-        self, comp: "Component", parent_id: Optional[str] = None
-    ) -> Dict[str, Any]:
-        node: Dict[str, Any] = {
+        self, comp: Component, parent_id: str | None = None
+    ) -> dict[str, Any]:
+        node: dict[str, Any] = {
             "id": comp._id,
             "tag": comp.tag_name,
             "parent_id": parent_id,
@@ -120,7 +121,7 @@ class ComponentSerializer:
 
 
 class Session:
-    def __init__(self, websocket: Any, app: "App") -> None:
+    def __init__(self, websocket: Any, app: App) -> None:
         self.ws = websocket
         self.app = app
         self.state = SessionState(session_id=str(uuid.uuid4())[:8])
@@ -166,7 +167,7 @@ class Session:
                     await self.updater.flush_updates(self.serializer)
                 elif data.get("type") == "navigate":
                     await self.navigator.navigate_to(data.get("path", "/"), self.serializer)
-            except Exception as e:
+            except Exception:  # noqa: BLE001
                 import traceback
                 traceback.print_exc()
             finally:

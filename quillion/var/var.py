@@ -9,8 +9,8 @@ import importlib.util
 import sys
 import types
 import uuid
-import os
-from typing import Any, Callable, Optional, List, TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 from weakref import WeakKeyDictionary
 
 if TYPE_CHECKING:
@@ -18,12 +18,11 @@ if TYPE_CHECKING:
     from ..session import Session
 
 from .. import _context as ctx
-from .reactive_expression import ReactiveExpression
-from .var_operator import VarOperator
 from .formatted_var import FormattedVar
 from .proxy import ReactiveProxy
+from .reactive_expression import ReactiveExpression
 
-__all__ = ["Var", "var", "auto_name_vars"]
+__all__ = ["Var", "auto_name_vars", "var"]
 
 
 class Var(ReactiveExpression):
@@ -32,8 +31,8 @@ class Var(ReactiveExpression):
     _initial: Any
     _factory: Any
     _observers: WeakKeyDictionary
-    _raw_callbacks: List[Callable]
-    _component_factory: Optional[Callable[..., "Component"]]
+    _raw_callbacks: list[Callable]
+    _component_factory: Callable[..., Component] | None
     _auto_named: bool
 
     def __init__(self, initial_value: Any = "") -> None:
@@ -50,7 +49,7 @@ class Var(ReactiveExpression):
         elif hasattr(initial_value, "__class__") and hasattr(initial_value, "__init__"):
             try:
                 self._factory = lambda: initial_value.__class__()
-            except:
+            except Exception:  # noqa: BLE001
                 self._factory = lambda: initial_value
         else:
             self._factory = lambda: initial_value
@@ -145,7 +144,7 @@ class Var(ReactiveExpression):
 
     def __repr__(self) -> str:
         """Detailed representation of the variable."""
-        return f"Var({repr(self.value)})"
+        return f"Var({self.value!r})"
 
     def __call__(self, *args, as_component=None, **kwargs) -> Any:
         """Set value: counter(42). Create two-way component: counter().
@@ -155,7 +154,7 @@ class Var(ReactiveExpression):
             return self
         from ..components.two_way import TwoWayBindingElement
         if self._component_factory is not None:
-            return self._component_factory(bind_var=self, *args, **kwargs)
+            return self._component_factory(*args, bind_var=self, **kwargs)
         if as_component is not None:
             if isinstance(as_component, str):
                 comp_cls = ctx.TWO_WAY_REGISTRY[as_component]
@@ -167,14 +166,14 @@ class Var(ReactiveExpression):
             if ctx.default_two_way_class is None:
                 raise RuntimeError("No default two-way component registered.")
             comp_cls = ctx.default_two_way_class
-        return comp_cls(bind_var=self, *args, **kwargs)
+        return comp_cls(*args, bind_var=self, **kwargs)
 
-    def bind_with(self, component_factory: Callable[..., "Component"]) -> "Var":
+    def bind_with(self, component_factory: Callable[..., Component]) -> Var:
         """Bind this variable to a component factory for two-way binding."""
         self._component_factory = component_factory
         return self
 
-    def _notify(self, session: "Session") -> None:
+    def _notify(self, session: Session) -> None:
         """Notify all observers of a change."""
         for observer, callbacks in list(self._observers.items()):
             for cb in callbacks:
@@ -182,7 +181,7 @@ class Var(ReactiveExpression):
         for cb in self._raw_callbacks:
             cb(self, session)
 
-    def observe(self, comp: "Component", cb: Callable) -> None:
+    def observe(self, comp: Component, cb: Callable) -> None:
         """Register an observer component and callback."""
         if comp not in self._observers:
             self._observers[comp] = []
@@ -237,14 +236,8 @@ class Var(ReactiveExpression):
     def __iter__(self):
         return iter(self.value)
 
-    def __len__(self):
-        return len(self.value)
 
-    def __contains__(self, item: Any) -> bool:
-        return item in self.value
-
-
-def var(initial_value: Any = "", *, name: Optional[str] = None) -> Var:
+def var(initial_value: Any = "", *, name: str | None = None) -> Var:
     """Create a reactive variable with an optional stable name."""
     v = Var(initial_value)
     if name is not None:
@@ -294,8 +287,8 @@ class _ReactiveVarTransformer(ast.NodeTransformer):
         
         import sysconfig
         stdlib_dir = sysconfig.get_path('stdlib')
-        if stdlib_dir and filename.startswith(stdlib_dir):
-            return False
+        if not (stdlib_dir and filename.startswith(stdlib_dir)):
+            return True
         
         return True
 
@@ -502,10 +495,9 @@ class _ReactiveVarTransformer(ast.NodeTransformer):
 
     def _transform_method_call(self, node: ast.Call) -> ast.AST | None:
         """Трансформирует вызов метода реактивной переменной (например, items.append(...))."""
-        if isinstance(node.func, ast.Attribute):
-            if isinstance(node.func.value, ast.Name):
-                name = node.func.value.id
-                if name in self.reactive_names:
+        if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+            name = node.func.value.id
+            if name in self.reactive_names:
                     # Оставляем как есть, но добавляем флаг
                     # Метод будет вызван через __getattr__ и вызовет _notify_self
                     self.needs_var_import = True
@@ -639,14 +631,10 @@ class _ReactiveVarTransformer(ast.NodeTransformer):
         )
 
     def _is_special_assignment(self, node: ast.Assign) -> bool:
-        for target in node.targets:
-            if isinstance(target, ast.Name) and target.id.startswith('__'):
-                return True
-        if isinstance(node.value, (ast.Import, ast.ImportFrom)):
-            return True
-        if isinstance(node.value, (ast.FunctionDef, ast.ClassDef)):
-            return True
-        return False
+        return any(
+            isinstance(target, ast.Name) and target.id.startswith('__')
+            for target in node.targets
+        ) or isinstance(node.value, (ast.Import, ast.ImportFrom, ast.FunctionDef, ast.ClassDef))
 
     def _wrap_in_var(self, value_node: ast.AST) -> ast.Call:
         return ast.Call(
@@ -658,8 +646,7 @@ class _ReactiveVarTransformer(ast.NodeTransformer):
     def _find_reactive_names(self, tree: ast.AST) -> None:
         """Находит все реактивные имена в AST."""
         for node in ast.walk(tree):
-            if isinstance(node, ast.Assign):
-                if self._is_var_call(node.value):
+            if isinstance(node, ast.Assign) and self._is_var_call(node.value):
                     for target in node.targets:
                         if isinstance(target, ast.Name):
                             self.reactive_names.add(target.id)
@@ -734,7 +721,7 @@ class _ReactiveVarLoader(importlib.abc.Loader):
         code = self.get_code(module.__name__)
         if code is None:
             raise ImportError(f"Cannot load module {module.__name__}")
-        exec(code, module.__dict__)
+        exec(code, module.__dict__)  # noqa: S102
 
 
 # ========== УСТАНОВКА FINDER ==========

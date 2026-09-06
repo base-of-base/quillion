@@ -58,11 +58,9 @@ function connect() {{
                     const update = data.updates[i];
                     const el = componentCache.get(update.id);
                     if (el) {{
-                        // Обновляем свойства
                         if (update.props) {{
                             setProps(el, update.props);
                         }}
-                        // Обновляем детей (если есть)
                         if (update.children && update.children.length > 0) {{
                             const fragment = document.createDocumentFragment();
                             for (const childNode of update.children) {{

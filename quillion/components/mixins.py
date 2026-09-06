@@ -3,11 +3,14 @@ Reusable mixins for components.
 """
 
 from __future__ import annotations
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, cast
+
+from typing import TYPE_CHECKING, Any, cast
+
 from .base import Component
+
 if TYPE_CHECKING:
-    from ..var import Var
     from ..session import Session
+    from ..var import Var
 
 from .. import _context as ctx
 
@@ -15,8 +18,8 @@ from .. import _context as ctx
 class TextMixin:
     """Renders mixed text + Var parts; re-renders when any Var changes."""
 
-    _parts: Tuple[Any, ...]
-    _vars: List["Var"]
+    _parts: tuple[Any, ...]
+    _vars: list[Var]
     content: str
 
     def __init__(self, *parts: Any, **kwargs: Any) -> None:
@@ -29,16 +32,16 @@ class TextMixin:
         for v in self._vars:
             v.observe(cast("Component", self), lambda c, v, s: self._update(s))
 
-    def _update(self, session: Optional["Session"]) -> None:
+    def _update(self, session: Session | None) -> None:
         self.content = "".join(str(p) for p in self._parts)
         if session is None:
             session = ctx.current_session.get()
         if session:
             session.updater.schedule_update(cast("Component", self))
 
-    def get_props(self) -> Dict[str, Any]:
+    def get_props(self) -> dict[str, Any]:
         props = {"textContent": self.content}
-        props.update(cast("Component", super(TextMixin, self)).get_props())
+        props.update(cast("Component", super()).get_props())
         return props
 
 
@@ -48,9 +51,9 @@ class ReactiveContainerMixin:
     Becomes reactive automatically if `Var` children detected
     """
     
-    _children_spec: Tuple[Any, ...]
-    _vars: List["Var"]
-    _children_cache: List["Component"]
+    _children_spec: tuple[Any, ...]
+    _vars: list[Var]
+    _children_cache: list[Component]
     _is_reactive: bool
 
     def __init__(self, *children: Any, **kwargs: Any) -> None:
@@ -61,7 +64,7 @@ class ReactiveContainerMixin:
         super().__init__(**kwargs)
         self.children = self._children_cache
 
-    def _extract_vars(self, items: Any) -> List["Var"]:
+    def _extract_vars(self, items: Any) -> list[Var]:
         """Extracts Var from struct."""
         result = []
         if hasattr(items, "observe") and (hasattr(items, "_key") or hasattr(items, "_dependencies")):
@@ -71,7 +74,7 @@ class ReactiveContainerMixin:
                 result.extend(self._extract_vars(item))
         return result
 
-    def _build_children(self, items: Any) -> List["Component"]:
+    def _build_children(self, items: Any) -> list[Component]:
         """Converts children to components."""
         from .elements import Text
         
@@ -109,7 +112,7 @@ class ReactiveContainerMixin:
             for v in self._vars:
                 v.observe(cast("Component", self), lambda c, v, s: self._update_children(s))
 
-    def _update_children(self, session: Optional["Session"]) -> None:
+    def _update_children(self, session: Session | None) -> None:
         """Rebuild children on `Var` changes."""
         self._children_cache = self._build_children(self._children_spec)
         self.children = self._children_cache
@@ -118,5 +121,5 @@ class ReactiveContainerMixin:
         if session:
             session.updater.schedule_update(cast("Component", self))
 
-    def get_children(self) -> List["Component"]:
+    def get_children(self) -> list[Component]:
         return self._children_cache

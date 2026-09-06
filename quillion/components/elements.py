@@ -3,15 +3,17 @@ Concrete HTML element components.
 """
 
 from __future__ import annotations
+
 import asyncio
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 from .. import _context as ctx
 from .base import Component
-from .mixins import TextMixin, ReactiveContainerMixin
+from .mixins import ReactiveContainerMixin, TextMixin
 
 
-def _wrap_children(children) -> List[Component]:
+def _wrap_children(children) -> list[Component]:
     return [Text(c) if isinstance(c, str) else c for c in children]
 
 
@@ -30,13 +32,13 @@ class Button(Component):
     tag_name = "button"
 
     def __init__(
-        self, label: str, on_click: Optional[Callable] = None, **kwargs: Any
+        self, label: str, on_click: Callable | None = None, **kwargs: Any
     ) -> None:
         super().__init__(**kwargs)
         self.label = label
         self.on_click = on_click
 
-    def get_props(self) -> Dict[str, Any]:
+    def get_props(self) -> dict[str, Any]:
         props = {"textContent": self.label}
         props.update(super().get_props())
         return props
@@ -61,12 +63,12 @@ class NavLink(Component):
         self.path = path
         self.label = label
 
-    def get_props(self) -> Dict[str, Any]:
+    def get_props(self) -> dict[str, Any]:
         props = {"textContent": self.label, "href": "#"}
         props.update(super().get_props())
         return props
 
-    def on_click(self, event_data: Optional[Dict] = None) -> None:
+    def on_click(self, event_data: dict | None = None) -> None:
         session = ctx.current_session.get()
         if session:
             asyncio.create_task(
@@ -82,7 +84,7 @@ class Image(Component):
         self.src = src
         self.alt = alt
 
-    def get_props(self) -> Dict[str, Any]:
+    def get_props(self) -> dict[str, Any]:
         props = {"src": self.src, "alt": self.alt}
         props.update(super().get_props())
         return props
@@ -96,7 +98,7 @@ class Link(Component):
         self.href = href
         self.rel = rel
 
-    def get_props(self) -> Dict[str, Any]:
+    def get_props(self) -> dict[str, Any]:
         props = {"href": self.href, "rel": self.rel}
         props.update(super().get_props())
         return props
@@ -106,14 +108,14 @@ class Script(Component):
     tag_name = "script"
 
     def __init__(
-        self, src: Optional[str] = None, content: Optional[str] = None, **kwargs: Any
+        self, src: str | None = None, content: str | None = None, **kwargs: Any
     ) -> None:
         super().__init__(**kwargs)
         self.src = src
         self.content = content
 
-    def get_props(self) -> Dict[str, Any]:
-        props: Dict[str, Any] = {}
+    def get_props(self) -> dict[str, Any]:
+        props: dict[str, Any] = {}
         if self.src:
             props["src"] = self.src
         if self.content:
@@ -121,7 +123,7 @@ class Script(Component):
         props.update(super().get_props())
         return props
 
-    def get_children(self) -> List[Component]:
+    def get_children(self) -> list[Component]:
         return []
 
 
@@ -132,12 +134,12 @@ class Style(Component):
         super().__init__(**kwargs)
         self.content = content
 
-    def get_props(self) -> Dict[str, Any]:
+    def get_props(self) -> dict[str, Any]:
         props = {"textContent": self.content}
         props.update(super().get_props())
         return props
 
-    def get_children(self) -> List[Component]:
+    def get_children(self) -> list[Component]:
         return []
 
 
@@ -173,7 +175,7 @@ class Anchor(Component):
         self.children = _wrap_children(children)
         super().__init__(**kwargs)
 
-    def get_props(self) -> Dict[str, Any]:
+    def get_props(self) -> dict[str, Any]:
         props = {"href": self.href}
         props.update(super().get_props())
         return props
@@ -182,14 +184,14 @@ class Anchor(Component):
 class Break(Component):
     tag_name = "br"
 
-    def get_children(self) -> List[Component]:
+    def get_children(self) -> list[Component]:
         return []
 
 
 class HorizontalRule(Component):
     tag_name = "hr"
 
-    def get_children(self) -> List[Component]:
+    def get_children(self) -> list[Component]:
         return []
 
 

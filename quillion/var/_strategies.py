@@ -1,33 +1,33 @@
 """Type conversion strategies for operators."""
 
-from typing import Any, Tuple
 import operator
+from typing import Any
 
 __all__ = [
-    "_as_is",
-    "_as_float",
-    "_as_str",
-    "_as_complex",
     "_OP_STRATEGIES",
+    "_as_complex",
+    "_as_float",
+    "_as_is",
+    "_as_str",
 ]
 
 
-def _as_is(a: Any, b: Any) -> Tuple[Any, Any]:
+def _as_is(a: Any, b: Any) -> tuple[Any, Any]:
     """Return values as-is."""
     return a, b
 
 
-def _as_float(a: Any, b: Any) -> Tuple[float, float]:
+def _as_float(a: Any, b: Any) -> tuple[float, float]:
     """Convert both values to float."""
     return float(a), float(b)
 
 
-def _as_str(a: Any, b: Any) -> Tuple[str, str]:
+def _as_str(a: Any, b: Any) -> tuple[str, str]:
     """Convert both values to string."""
     return str(a), str(b)
 
 
-def _as_complex(a: Any, b: Any) -> Tuple[complex, complex]:
+def _as_complex(a: Any, b: Any) -> tuple[complex, complex]:
     """Convert both values to complex (for power operations)."""
     return complex(a), complex(b)
 

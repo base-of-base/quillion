@@ -1,4 +1,4 @@
-from quillion import app, page, button, heading, div
+from quillion import app, button, div, heading, page
 
 counter = 0
 items = []

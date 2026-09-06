@@ -3,19 +3,23 @@ File watcher: polls for changes and triggers hot-reload on all sessions.
 """
 
 from __future__ import annotations
+
+import ast
 import asyncio
 import hashlib
 import importlib
+import logging
 import os
 import sys
 import time
 import traceback
-from typing import TYPE_CHECKING, Set, Dict, Optional
-import ast
+from typing import TYPE_CHECKING
 
 from . import _context as ctx
-from .cli import print_reload, _clr, _C
+from .cli import _C, _clr, print_reload
 from .var import auto_name_vars
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from .app import App
@@ -36,18 +40,18 @@ def _is_local_file(file_path: str) -> bool:
             if (
                 "site-packages" in site_packages_dir
                 or "dist-packages" in site_packages_dir
-            ):
-                if abs_path.startswith(os.path.abspath(site_packages_dir)):
-                    return False
+            ) and abs_path.startswith(os.path.abspath(site_packages_dir)):
+                return False
         std_lib_dir = os.path.dirname(os.__file__)
         if abs_path.startswith(std_lib_dir):
             return False
         return os.path.exists(abs_path) and abs_path.endswith(".py")
-    except:
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Error checking local file %s: %s", file_path, exc)
         return False
 
 
-def _extract_imports(file_path: str) -> Set[str]:
+def _extract_imports(file_path: str) -> set[str]:
     imports = set()
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -57,11 +61,10 @@ def _extract_imports(file_path: str) -> Set[str]:
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     imports.add(alias.name.split(".")[0])
-            elif isinstance(node, ast.ImportFrom):
-                if node.module:
-                    imports.add(node.module.split(".")[0])
-    except Exception:
-        pass
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                imports.add(node.module.split(".")[0])
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Failed to extract imports from %s: %s", file_path, exc)
     return imports
 
 
@@ -79,7 +82,7 @@ def _find_module_file(module_name: str, base_path: str) -> str | None:
     return None
 
 
-def _get_dependent_files(target_path: str) -> Set[str]:
+def _get_dependent_files(target_path: str) -> set[str]:
     dependent_files = set()
     processed = set()
 
@@ -102,13 +105,13 @@ def _get_dependent_files(target_path: str) -> Set[str]:
 
 
 class _FileWatcher:
-    def __init__(self, target_path: str, app: "App", module_name: str):
+    def __init__(self, target_path: str, app: App, module_name: str):
         self.target_path = os.path.abspath(target_path)
         self.app = app
         self.module_name = module_name
-        self.file_hashes: Dict[str, str] = {}
-        self.watched_files: Set[str] = set()
-        self.last_changed_file: Optional[str] = None
+        self.file_hashes: dict[str, str] = {}
+        self.watched_files: set[str] = set()
+        self.last_changed_file: str | None = None
 
     async def _update_watched_files(self):
         new_files = _get_dependent_files(self.target_path)
@@ -142,19 +145,19 @@ class _FileWatcher:
 
             for file_path in self.watched_files:
                 for name, module in sys.modules.items():
-                    if hasattr(module, "__file__") and module.__file__:
-                        if os.path.abspath(module.__file__) == file_path:
-                            modules_to_reload.add(name)
-                            if file_path == self.last_changed_file:
-                                changed_module_name = name
-                            break
+                    if (hasattr(module, "__file__") and module.__file__
+                            and os.path.abspath(module.__file__) == file_path):
+                        modules_to_reload.add(name)
+                        if file_path == self.last_changed_file:
+                            changed_module_name = name
+                        break
 
             for module_name in sorted(modules_to_reload):
                 if module_name in sys.modules:
                     try:
                         importlib.reload(sys.modules[module_name])
-                    except Exception:
-                        pass
+                    except Exception as exc:  # noqa: BLE001
+                        logger.warning("Failed to reload module %s: %s", module_name, exc)
 
             if self.module_name in sys.modules:
                 importlib.reload(sys.modules[self.module_name])
@@ -185,10 +188,11 @@ class _FileWatcher:
 
             print_reload(filename, elapsed_ms)
 
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             elapsed_ms = (time.perf_counter() - t0) * 1000
             tag = _clr(_C.RED + _C.BOLD, "x") if _C.supported() else "x"
             ms = _clr(_C.DIM, f"{elapsed_ms:.1f}ms")
+            logger.error("Reload failed: %s", exc)
             print(f"  {tag}  {_clr(_C.RED, str(exc))}  {ms}")
             traceback.print_exc()
             self.app._is_loading = False
@@ -201,6 +205,6 @@ class _FileWatcher:
                 await self._reload()
 
 
-async def watch_and_reload(app: "App", target_path: str, module_name: str) -> None:
+async def watch_and_reload(app: App, target_path: str, module_name: str) -> None:
     watcher = _FileWatcher(target_path, app, module_name)
     await watcher.watch()

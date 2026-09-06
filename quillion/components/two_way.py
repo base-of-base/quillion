@@ -3,14 +3,15 @@ TwoWayBindingElement: base for components that sync with a Var.
 """
 
 from __future__ import annotations
-from typing import Any, Optional, TYPE_CHECKING
+
+from typing import TYPE_CHECKING
 
 from .. import _context as ctx
 from .base import Component, UIComponentMeta
 
 if TYPE_CHECKING:
-    from ..var import Var
     from ..session import Session
+    from ..var import Var
 
 
 class TwoWayComponentMeta(UIComponentMeta):
@@ -29,10 +30,10 @@ class TwoWayComponentMeta(UIComponentMeta):
 
 
 class TwoWayBindingElement(Component, metaclass=TwoWayComponentMeta):
-    _bind_var: Optional["Var"]
+    _bind_var: Var | None
     _updating_from_var: bool
 
-    def __init__(self, bind_var: Optional["Var"] = None, **kwargs):
+    def __init__(self, bind_var: Var | None = None, **kwargs):
         self._bind_var = bind_var
         self._updating_from_var = False
         super().__init__(**kwargs)
@@ -41,7 +42,7 @@ class TwoWayBindingElement(Component, metaclass=TwoWayComponentMeta):
         if self._bind_var:
             self._bind_var.observe(self, lambda c, v, s: self._update_from_var(s))
 
-    def _update_from_var(self, session: "Session") -> None:
+    def _update_from_var(self, session: Session) -> None:
         if not self._updating_from_var:
             self._updating_from_var = True
             try:

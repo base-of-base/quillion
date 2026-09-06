@@ -1,8 +1,6 @@
 """Project creation and management utilities."""
 
-import shutil
 from pathlib import Path
-from typing import Optional
 
 from . import cli
 from .templates import INDEX_HTML_TEMPLATE, MAIN_PY_TEMPLATE
@@ -39,10 +37,10 @@ def create_q_project(path: Path, app_name: str, force: bool = False) -> None:
     if not main_py.exists() or force:
         main_py.write_text(MAIN_PY_TEMPLATE.format(app_name=app_name))
     elif main_py.exists():
-        cli.print_err(f"main.py already exists, keeping existing file")
+        cli.print_err("main.py already exists, keeping existing file")
 
 
-def init_project(path: Optional[Path] = None, app_name: str = "Quillion App") -> None:
+def init_project(path: Path | None = None, app_name: str = "Quillion App") -> None:
     """
     Initialize Quillion in a directory.
     

@@ -1,6 +1,7 @@
 """Universal reactive proxy for any mutable object."""
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 
 class ReactiveProxy:

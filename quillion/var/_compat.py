@@ -2,24 +2,21 @@
 
 from __future__ import annotations
 
-import uuid
-import operator
 import math
-from typing import TYPE_CHECKING
+import operator
+import uuid
 from weakref import WeakKeyDictionary
 
-if TYPE_CHECKING:
-    from ..components.base import Component
-    from ..session import Session
-
 from .. import _context as ctx
+from ..components.base import Component
+from ..session import Session
 
 __all__ = [
-    "uuid",
-    "operator",
-    "math",
-    "WeakKeyDictionary",
     "Component",
     "Session",
+    "WeakKeyDictionary",
     "ctx",
+    "math",
+    "operator",
+    "uuid",
 ]

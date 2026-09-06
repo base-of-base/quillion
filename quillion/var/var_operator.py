@@ -2,24 +2,26 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, List
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .var import Var
     from ..components.base import Component
+    from .var import Var
 
-from .reactive_expression import ReactiveExpression
-from .computed_value import ComputedValue, _create_computed
 import operator
+
+from .computed_value import ComputedValue, _create_computed
+from .reactive_expression import ReactiveExpression
 
 __all__ = ["VarOperator"]
 
 
 class VarOperator(ReactiveExpression):
     """Wrapper for variable operations that supports both reactive observation and assignment."""
-    __slots__ = ("_var", "_op_func", "_other", "_computed")
+    __slots__ = ("_computed", "_op_func", "_other", "_var")
 
-    def __init__(self, var: "Var", op_func: Callable, other: Any) -> None:
+    def __init__(self, var: Var, op_func: Callable, other: Any) -> None:
         self._var = var  # type: ignore
         self._op_func = op_func
         self._other = other
@@ -31,11 +33,11 @@ class VarOperator(ReactiveExpression):
         return self._computed.value
 
     @property
-    def _dependencies(self) -> List:
+    def _dependencies(self) -> list:
         """Return the dependencies of this operation."""
         return self._computed._dependencies  # type: ignore
 
-    def observe(self, comp: "Component", cb: Callable) -> None:
+    def observe(self, comp: Component, cb: Callable) -> None:
         """Register an observer for changes to this operation's value."""
         self._computed.observe(comp, cb)
 
@@ -44,32 +46,32 @@ class VarOperator(ReactiveExpression):
         new_value = self._op_func(self._var.value, self._other)  # type: ignore
         self._var.set(new_value)  # type: ignore
 
-    def __eq__(self, other: Any) -> "ComputedValue":
+    def __eq__(self, other: object) -> ComputedValue:
         """Equality comparison with computed value."""
         from .computed_value import _create_computed
         return _create_computed(operator.eq, self._computed, other)  # type: ignore
 
-    def __ne__(self, other: Any) -> "ComputedValue":
+    def __ne__(self, other: object) -> ComputedValue:
         """Inequality comparison with computed value."""
         from .computed_value import _create_computed
         return _create_computed(operator.ne, self._computed, other)  # type: ignore
 
-    def __lt__(self, other: Any) -> "ComputedValue":
+    def __lt__(self, other: Any) -> ComputedValue:
         """Less than comparison with computed value."""
         from .computed_value import _create_computed
         return _create_computed(operator.lt, self._computed, other)  # type: ignore
 
-    def __le__(self, other: Any) -> "ComputedValue":
+    def __le__(self, other: Any) -> ComputedValue:
         """Less than or equal comparison with computed value."""
         from .computed_value import _create_computed
         return _create_computed(operator.le, self._computed, other)  # type: ignore
 
-    def __gt__(self, other: Any) -> "ComputedValue":
+    def __gt__(self, other: Any) -> ComputedValue:
         """Greater than comparison with computed value."""
         from .computed_value import _create_computed
         return _create_computed(operator.gt, self._computed, other)  # type: ignore
 
-    def __ge__(self, other: Any) -> "ComputedValue":
+    def __ge__(self, other: Any) -> ComputedValue:
         """Greater than or equal comparison with computed value."""
         from .computed_value import _create_computed
         return _create_computed(operator.ge, self._computed, other)  # type: ignore

@@ -3,19 +3,22 @@ App: the central object that owns routes, sessions, and servers.
 """
 
 from __future__ import annotations
+
+import ast
 import asyncio
 import os
-import ast
-import __main__ as main_module
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from websockets.server import serve
+
+import __main__ as main_module
 
 from . import _context as ctx
 from .cli import print_banner
 from .server import http_handler
-from .watcher import watch_and_reload
 from .var.var import _ReactiveVarTransformer, auto_name_vars
+from .watcher import watch_and_reload
 
 if TYPE_CHECKING:
     from .components.base import Component
@@ -24,11 +27,11 @@ if TYPE_CHECKING:
 
 
 class App:
-    routes: Dict[str, Callable[[], "Component"]]
-    global_css: List[str]
-    sessions: Dict[Any, "Session"]
+    routes: dict[str, Callable[[], Component]]
+    global_css: list[str]
+    sessions: dict[Any, Session]
     _is_loading: bool
-    _static_dirs: List[Tuple[str, str]]
+    _static_dirs: list[tuple[str, str]]
     _host: str
     _http_port: int
     _ws_port: int
@@ -49,15 +52,15 @@ class App:
         if os.path.exists(q_dir):
             self._static_dirs.append(("/", q_dir))
 
-    def _index_html_path(self) -> Optional[str]:
+    def _index_html_path(self) -> str | None:
         local_path = os.path.join(os.getcwd(), ".q", "index.html")
         return local_path
 
-    def set_default_two_way_component(self, cls: Type["TwoWayBindingElement"]) -> "App":
+    def set_default_two_way_component(self, cls: type[TwoWayBindingElement]) -> App:
         ctx.default_two_way_class = cls
         return self
 
-    def css(self, *css_paths: str) -> "App":
+    def css(self, *css_paths: str) -> App:
         for p in css_paths:
             if isinstance(p, str) and p.endswith(".css") and os.path.exists(p):
                 with open(p, encoding="utf-8") as fh:
@@ -66,13 +69,13 @@ class App:
                 self.global_css.append(str(p))
         return self
 
-    def static(self, url_prefix: str, directory: str) -> "App":
+    def static(self, url_prefix: str, directory: str) -> App:
         prefix = "/" + url_prefix.strip("/") + "/"
         self._static_dirs.append((prefix, os.path.abspath(directory)))
         return self
 
     def page(self, path: str) -> Callable:
-        def decorator(f: Callable[[], "Component"]) -> Callable[[], "Component"]:
+        def decorator(f: Callable[[], Component]) -> Callable[[], Component]:
             self.routes[path] = f
             return f
         return decorator
@@ -102,14 +105,14 @@ class App:
             ast.fix_missing_locations(tree)
             code = compile(tree, main_file, "exec")
 
-            exec(code, main_module.__dict__)
+            exec(code, main_module.__dict__)  # noqa: S102
             main_module._reactive_transformed = True
             auto_name_vars(main_module)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"[Quillion] Could not apply reactive transform to __main__: {e}")
 
-    async def _delayed_process(self, session: "Session") -> None:
+    async def _delayed_process(self, session: Session) -> None:
         await session.updater.flush_updates(session.serializer)
 
     async def _http_handler(
@@ -119,7 +122,7 @@ class App:
     ) -> None:
         await http_handler(reader, writer, self._static_dirs, self._index_html_path())
 
-    async def _ws_handler(self, ws: Any, path: Optional[str] = None) -> None:
+    async def _ws_handler(self, ws: Any, path: str | None = None) -> None:
         from .session import Session as _Session
 
         session = _Session(ws, self)
@@ -137,7 +140,7 @@ class App:
         host: str = "localhost",
         port: int = 8765,
         http_port: int = 8080,
-        watch: Optional[str] = None,
+        watch: str | None = None,
     ) -> None:
         if self._is_loading:
             return

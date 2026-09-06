@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, List
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 from weakref import WeakKeyDictionary
 
 if TYPE_CHECKING:
@@ -10,13 +11,13 @@ if TYPE_CHECKING:
     from .var import Var
 
 from .. import _context as ctx
-from .reactive_expression import ReactiveExpression
 from ._safe_op import _safe_op
+from .reactive_expression import ReactiveExpression
 
 __all__ = ["ComputedValue", "_create_computed"]
 
 
-def _create_computed(op_func: Callable, a: Any, b: Any) -> "ComputedValue":
+def _create_computed(op_func: Callable, a: Any, b: Any) -> ComputedValue:
     """Create a computed value from a binary operation."""
     from .var import Var
 
@@ -47,16 +48,16 @@ def _create_computed(op_func: Callable, a: Any, b: Any) -> "ComputedValue":
 
 class ComputedValue(ReactiveExpression):
     """Cached reactive computation that updates when dependencies change."""
-    __slots__ = ("_func", "_dependencies", "_cached_value", "_dirty", "_observers", "__weakref__", "_unsubscribers")
+    __slots__ = ("__weakref__", "_cached_value", "_dependencies", "_dirty", "_func", "_observers", "_unsubscribers")
 
-    def __init__(self, func: Callable[[], Any], dependencies: List[Var]) -> None:
+    def __init__(self, func: Callable[[], Any], dependencies: list[Var]) -> None:
         """Initialize a computed value with a function and its dependencies."""
         self._func = func
         self._dependencies = dependencies
         self._cached_value = None
         self._dirty = True
-        self._observers: WeakKeyDictionary[Component, List[Callable]] = WeakKeyDictionary()
-        self._unsubscribers: List[Callable[[], None]] = []
+        self._observers: WeakKeyDictionary[Component, list[Callable]] = WeakKeyDictionary()
+        self._unsubscribers: list[Callable[[], None]] = []
         for dep in dependencies:
             unsub = dep._add_raw_callback(self._on_dep_changed)  # type: ignore
             self._unsubscribers.append(unsub)

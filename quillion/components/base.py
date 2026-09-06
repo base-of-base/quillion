@@ -4,11 +4,13 @@ UIComponentMeta wires up event handlers and assigns stable IDs.
 """
 
 from __future__ import annotations
+
 import asyncio
 import inspect
 import re
 import uuid
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 from .. import _context as ctx
 
@@ -36,11 +38,11 @@ class UIComponentMeta(type):
     """Metaclass that post-processes Component instances on creation."""
 
     def __call__(cls, *args, **kwargs):
-        style: Dict[str, Any] = {}
-        class_name: Optional[str] = kwargs.pop("class_name", None) or kwargs.pop(
+        style: dict[str, Any] = {}
+        class_name: str | None = kwargs.pop("class_name", None) or kwargs.pop(
             "className", None
         )
-        other: Dict[str, Any] = {}
+        other: dict[str, Any] = {}
 
         reserved = {
             "children",
@@ -77,7 +79,7 @@ class UIComponentMeta(type):
                 inst._event_handlers[event_name] = original
 
                 def _wrap(orig: Callable, _evt: str):
-                    def wrapper(event_data: Optional[Dict] = None):
+                    def wrapper(event_data: dict | None = None):
                         if inspect.signature(orig).parameters:
                             result = orig(event_data)
                         else:
@@ -102,9 +104,9 @@ class Component(metaclass=UIComponentMeta):
     tag_name: str = "div"
 
     _id: str
-    _event_handlers: Dict[str, Callable]
-    _style: Dict[str, Any]
-    _class_name: Optional[str]
+    _event_handlers: dict[str, Callable]
+    _style: dict[str, Any]
+    _class_name: str | None
 
     def __init__(self, **kwargs):
         self._id = ""
@@ -114,8 +116,8 @@ class Component(metaclass=UIComponentMeta):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-    def get_props(self) -> Dict[str, Any]:
-        props: Dict[str, Any] = {}
+    def get_props(self) -> dict[str, Any]:
+        props: dict[str, Any] = {}
         if self._style:
             css_items = []
             for k, v in self._style.items():
@@ -126,5 +128,5 @@ class Component(metaclass=UIComponentMeta):
             props["className"] = self._class_name
         return props
 
-    def get_children(self) -> List["Component"]:
+    def get_children(self) -> list[Component]:
         return getattr(self, "children", [])

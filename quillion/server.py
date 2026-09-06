@@ -3,14 +3,24 @@ Static file handler and raw HTTP/1.1 server.
 """
 
 from __future__ import annotations
+
 import asyncio
 import mimetypes
 import os
-from typing import Any, Callable, List, Optional, Tuple, Union
+from collections.abc import Callable
+from typing import Any
 from urllib.parse import unquote
 
 from .cli import print_err
 
+
+async def _read_file_bytes(path: str) -> bytes:
+    return await asyncio.to_thread(_read_file_sync, path)
+
+
+def _read_file_sync(path: str) -> bytes:
+    with open(path, "rb") as fh:
+        return fh.read()
 
 _STATIC_EXTENSIONS = {
     ".js",
@@ -40,10 +50,10 @@ _STATIC_EXTENSIONS = {
 
 
 class StaticFileHandler:
-    def __init__(self, static_dirs: List[Tuple[str, str]]) -> None:
+    def __init__(self, static_dirs: list[tuple[str, str]]) -> None:
         self.static_dirs = static_dirs
 
-    def find_file(self, path: str) -> Optional[Tuple[str, str]]:
+    def find_file(self, path: str) -> tuple[str, str] | None:
         """Return (absolute_file_path, mime_type) or None."""
         path = unquote(path)
         for url_prefix, fs_dir in self.static_dirs:
@@ -61,14 +71,13 @@ class StaticFileHandler:
     async def serve(
         self,
         path: str,
-        send_response: Callable[[int, Union[str, bytes], Optional[str]], Any],
+        send_response: Callable[[int, str | bytes, str | None], Any],
     ) -> bool:
         result = self.find_file(path)
         if result is None:
             return False
         file_path, mime = result
-        with open(file_path, "rb") as fh:
-            content = fh.read()
+        content = await _read_file_bytes(file_path)
         await send_response(200, content, mime)
         return True
 
@@ -80,8 +89,8 @@ def is_static_path(path: str) -> bool:
 async def http_handler(
     reader: asyncio.StreamReader,
     writer: asyncio.StreamWriter,
-    static_dirs: List[Tuple[str, str]],
-    index_html_path: Optional[str],
+    static_dirs: list[tuple[str, str]],
+    index_html_path: str | None,
 ) -> None:
     try:
         request_line = await reader.readline()
@@ -97,7 +106,7 @@ async def http_handler(
         method, path = parts[0], parts[1].split("?")[0]
 
         async def send(
-            status: int, content: Union[str, bytes], ct: Optional[str] = "text/html"
+            status: int, content: str | bytes, ct: str | None = "text/html"
         ) -> None:
             if isinstance(content, str):
                 content = content.encode("utf-8")
@@ -123,15 +132,15 @@ async def http_handler(
             return
 
         if index_html_path and os.path.exists(index_html_path):
-            with open(index_html_path, "rb") as fh:
-                await send(200, fh.read(), "text/html")
+            content = await _read_file_bytes(index_html_path)
+            await send(200, content, "text/html")
             return
 
         await send(404, b"Not Found", None)
 
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         print_err(f"http: {exc}")
         try:
             writer.close()
-        except Exception:
+        except Exception:  # noqa: BLE001, S110
             pass

@@ -3,9 +3,9 @@ Terminal output: colours, banner, reload messages.
 """
 
 from __future__ import annotations
+
 import sys
 import time
-from typing import Optional
 
 
 class _C:
@@ -32,7 +32,7 @@ def _clr(code: str, text: str) -> str:
     return f"{code}{text}{_C.RESET}" if _C.supported() else text
 
 
-startup_time: Optional[float] = None
+startup_time: float | None = None
 
 
 def print_banner(host: str, http_port: int, ws_port: int, target: str) -> None:

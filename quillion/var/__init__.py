@@ -1,19 +1,20 @@
 """Reactive variables module."""
 
-from .var import Var, var, auto_name_vars, VarNamespace
 from .computed_value import ComputedValue
-from .var_operator import VarOperator
 from .formatted_var import FormattedVar
-from .reactive_expression import ReactiveExpression
 from .proxy import ReactiveProxy
+from .reactive_expression import ReactiveExpression
+from .var import Var, VarNamespace, auto_name_vars, var
+from .var_operator import VarOperator
 
 __all__ = [
-    "Var",
-    "var",
-    "auto_name_vars",
     "ComputedValue",
-    "VarOperator",
     "FormattedVar",
     "ReactiveExpression",
     "ReactiveProxy",
+    "Var",
+    "VarNamespace",
+    "VarOperator",
+    "auto_name_vars",
+    "var",
 ]
