@@ -34,34 +34,38 @@ class SessionState:
 
 
 class UpdateManager:
+    _ws: Any
+    _pending: set[Component]
+
     def __init__(self, websocket: Any) -> None:
         self._ws = websocket
-        self._pending: set[Component] = set()
+        self._pending = set()
 
     def schedule_update(self, comp: Component) -> None:
         self._pending.add(comp)
 
-    async def flush_updates(self, serializer: ComponentSerializer) -> None:
-        """Отправляет обновления компонентов, включая изменения детей."""
+    async def flush_updates(self, serializer: Any) -> None:
         if not self._pending:
             return
-        
-        updates = []
+        updates: list[dict[str, Any]] = []
         for comp in self._pending:
-            update = {
+            update: dict[str, Any] = {
                 "id": comp._id,
-                "props": comp.get_props()
+                "props": comp.get_props(),
             }
             children = comp.get_children()
             if children:
                 update["children"] = [serializer.serialize(child, comp._id) for child in children]
             updates.append(update)
-        
         self._pending.clear()
         await self._ws.send(json.dumps({"updates": updates}))
 
 
 class NavigationManager:
+    _routes: dict[str, Callable[[], Component]]
+    _ws: Any
+    _state: SessionState
+
     def __init__(
         self,
         routes: dict[str, Callable[[], Component]],
@@ -72,7 +76,7 @@ class NavigationManager:
         self._ws = websocket
         self._state = state
 
-    async def navigate_to(self, path: str, serializer: ComponentSerializer) -> None:
+    async def navigate_to(self, path: str, serializer: Any) -> None:
         if path in self._routes:
             self._state.current_path = path
             page = self._routes[path]()
@@ -81,17 +85,20 @@ class NavigationManager:
 
 
 class EventManager:
+    _handlers: dict[str, tuple[Component, str]]
+
     def __init__(self) -> None:
-        self._handlers: dict[str, tuple[Component, str]] = {}
+        self._handlers = {}
 
     def register(self, comp: Component, event_name: str) -> str:
         eid = str(uuid.uuid4())[:8]
         self._handlers[eid] = (comp, event_name)
         return eid
 
-    def handle(self, eid: str, event_data: dict[str, Any], session: Session) -> None:
+    def handle(self, eid: str, event_data: dict[str, Any], session: Any) -> None:
         if eid in self._handlers:
-            comp, evt_name = self._handlers[eid]
+            comp: Component = self._handlers[eid][0]
+            evt_name: str = self._handlers[eid][1]
             try:
                 getattr(comp, f"on_{evt_name}")(event_data)
             except Exception:  # noqa: BLE001
@@ -100,7 +107,9 @@ class EventManager:
 
 
 class ComponentSerializer:
-    def __init__(self, event_manager: EventManager) -> None:
+    _events: Any
+
+    def __init__(self, event_manager: Any) -> None:
         self._events = event_manager
 
     def serialize(
@@ -121,6 +130,14 @@ class ComponentSerializer:
 
 
 class Session:
+    ws: Any
+    app: App
+    state: SessionState
+    updater: UpdateManager
+    navigator: NavigationManager
+    events: EventManager
+    serializer: ComponentSerializer
+
     def __init__(self, websocket: Any, app: App) -> None:
         self.ws = websocket
         self.app = app
@@ -161,7 +178,7 @@ class Session:
         async for msg in self.ws:
             token = ctx.current_session.set(self)
             try:
-                data = json.loads(msg)
+                data: dict[str, Any] = json.loads(msg)
                 if data.get("type") == "event":
                     self.events.handle(data.get("event_id"), data.get("data", {}), self)
                     await self.updater.flush_updates(self.serializer)

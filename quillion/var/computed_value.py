@@ -17,11 +17,11 @@ from .reactive_expression import ReactiveExpression
 __all__ = ["ComputedValue", "_create_computed"]
 
 
-def _create_computed(op_func: Callable, a: Any, b: Any) -> ComputedValue:
+def _create_computed(op_func: Callable[[Any, Any], Any], a: Any, b: Any) -> ComputedValue:
     """Create a computed value from a binary operation."""
     from .var import Var
 
-    deps = []
+    deps: list[Var | ReactiveExpression] = []
     if hasattr(a, '_dependencies'):
         deps.extend(a._dependencies)  # type: ignore
     elif isinstance(a, Var):
@@ -30,8 +30,8 @@ def _create_computed(op_func: Callable, a: Any, b: Any) -> ComputedValue:
         deps.extend(b._dependencies)  # type: ignore
     elif isinstance(b, Var):
         deps.append(b)
-    seen = set()
-    unique_deps = []
+    seen: set[int] = set()
+    unique_deps: list[Var | ReactiveExpression] = []
     for dep in deps:
         dep_id = id(dep)
         if dep_id not in seen:
@@ -39,9 +39,9 @@ def _create_computed(op_func: Callable, a: Any, b: Any) -> ComputedValue:
             unique_deps.append(dep)
     deps = unique_deps
 
-    def calc():
-        val_a = a.value if hasattr(a, 'value') else a  # type: ignore
-        val_b = b.value if hasattr(b, 'value') else b  # type: ignore
+    def calc() -> Any:
+        val_a = a.value if hasattr(a, 'value') else a
+        val_b = b.value if hasattr(b, 'value') else b
         return _safe_op(op_func, val_a, val_b)
     return ComputedValue(calc, deps)
 
@@ -50,19 +50,19 @@ class ComputedValue(ReactiveExpression):
     """Cached reactive computation that updates when dependencies change."""
     __slots__ = ("__weakref__", "_cached_value", "_dependencies", "_dirty", "_func", "_observers", "_unsubscribers")
 
-    def __init__(self, func: Callable[[], Any], dependencies: list[Var]) -> None:
+    def __init__(self, func: Callable[[], Any], dependencies: list[Var | ReactiveExpression]) -> None:
         """Initialize a computed value with a function and its dependencies."""
         self._func = func
         self._dependencies = dependencies
-        self._cached_value = None
+        self._cached_value: Any = None
         self._dirty = True
-        self._observers: WeakKeyDictionary[Component, list[Callable]] = WeakKeyDictionary()
+        self._observers: WeakKeyDictionary[Component, list[Callable[..., Any]]] = WeakKeyDictionary()
         self._unsubscribers: list[Callable[[], None]] = []
         for dep in dependencies:
             unsub = dep._add_raw_callback(self._on_dep_changed)  # type: ignore
             self._unsubscribers.append(unsub)
 
-    def _on_dep_changed(self, *args) -> None:
+    def _on_dep_changed(self, *args: Any) -> None:
         """Mark as dirty when a dependency changes."""
         self._dirty = True
         session = ctx.current_session.get()
@@ -71,7 +71,7 @@ class ComputedValue(ReactiveExpression):
                 for cb in callbacks:
                     cb(comp, self, session)
 
-    def observe(self, comp: Component, cb: Callable) -> None:
+    def observe(self, comp: Component, cb: Callable[..., Any]) -> None:
         """Register an observer for changes to this computed value."""
         if comp not in self._observers:
             self._observers[comp] = []

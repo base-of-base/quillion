@@ -52,7 +52,7 @@ def _is_local_file(file_path: str) -> bool:
 
 
 def _extract_imports(file_path: str) -> set[str]:
-    imports = set()
+    imports: set[str] = set()
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
@@ -70,7 +70,7 @@ def _extract_imports(file_path: str) -> set[str]:
 
 def _find_module_file(module_name: str, base_path: str) -> str | None:
     base_dir = os.path.dirname(base_path)
-    possible_paths = [
+    possible_paths: list[str] = [
         os.path.join(base_dir, f"{module_name}.py"),
         os.path.join(base_dir, module_name, "__init__.py"),
         os.path.join(base_dir, f"{module_name.replace('.', os.sep)}.py"),
@@ -83,10 +83,10 @@ def _find_module_file(module_name: str, base_path: str) -> str | None:
 
 
 def _get_dependent_files(target_path: str) -> set[str]:
-    dependent_files = set()
-    processed = set()
+    dependent_files: set[str] = set()
+    processed: set[str] = set()
 
-    def collect(file_path: str):
+    def collect(file_path: str) -> None:
         abs_path = os.path.abspath(file_path)
         if abs_path in processed:
             return
@@ -105,7 +105,14 @@ def _get_dependent_files(target_path: str) -> set[str]:
 
 
 class _FileWatcher:
-    def __init__(self, target_path: str, app: App, module_name: str):
+    target_path: str
+    app: App
+    module_name: str
+    file_hashes: dict[str, str]
+    watched_files: set[str]
+    last_changed_file: str | None
+
+    def __init__(self, target_path: str, app: App, module_name: str) -> None:
         self.target_path = os.path.abspath(target_path)
         self.app = app
         self.module_name = module_name
@@ -113,7 +120,7 @@ class _FileWatcher:
         self.watched_files: set[str] = set()
         self.last_changed_file: str | None = None
 
-    async def _update_watched_files(self):
+    async def _update_watched_files(self) -> None:
         new_files = _get_dependent_files(self.target_path)
         for file_path in new_files:
             if file_path not in self.watched_files:
@@ -135,13 +142,13 @@ class _FileWatcher:
         self.last_changed_file = None
         return False
 
-    async def _reload(self):
-        t0 = time.perf_counter()
+    async def _reload(self) -> None:
+        t0: float = time.perf_counter()
         try:
             self.app._is_loading = True
 
-            modules_to_reload = set()
-            changed_module_name = None
+            modules_to_reload: set[str] = set()
+            changed_module_name: str | None = None
 
             for file_path in self.watched_files:
                 for name, module in sys.modules.items():
@@ -175,7 +182,7 @@ class _FileWatcher:
                 finally:
                     ctx.current_session.reset(token)
 
-            elapsed_ms = (time.perf_counter() - t0) * 1000
+            elapsed_ms: float = (time.perf_counter() - t0) * 1000
 
             if changed_module_name:
                 changed_file = self.last_changed_file
@@ -197,7 +204,7 @@ class _FileWatcher:
             traceback.print_exc()
             self.app._is_loading = False
 
-    async def watch(self):
+    async def watch(self) -> None:
         await self._update_watched_files()
         while True:
             await asyncio.sleep(0.3)

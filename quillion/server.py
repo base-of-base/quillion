@@ -93,17 +93,18 @@ async def http_handler(
     index_html_path: str | None,
 ) -> None:
     try:
-        request_line = await reader.readline()
+        request_line: bytes = await reader.readline()
         if not request_line:
             writer.close()
             return
 
-        parts = request_line.decode().split()
+        parts: list[str] = request_line.decode().split()
         if len(parts) < 2:
             writer.close()
             return
 
-        method, path = parts[0], parts[1].split("?")[0]
+        method: str = parts[0]
+        path: str = parts[1].split("?")[0]
 
         async def send(
             status: int, content: str | bytes, ct: str | None = "text/html"
@@ -123,7 +124,7 @@ async def http_handler(
             await send(405, b"")
             return
 
-        handler = StaticFileHandler(static_dirs)
+        handler: StaticFileHandler = StaticFileHandler(static_dirs)
         if await handler.serve(path, send):
             return
 
@@ -132,7 +133,7 @@ async def http_handler(
             return
 
         if index_html_path and os.path.exists(index_html_path):
-            content = await _read_file_bytes(index_html_path)
+            content: bytes = await _read_file_bytes(index_html_path)
             await send(200, content, "text/html")
             return
 

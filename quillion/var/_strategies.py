@@ -1,6 +1,7 @@
 """Type conversion strategies for operators."""
 
 import operator
+from collections.abc import Callable
 from typing import Any
 
 __all__ = [
@@ -33,7 +34,7 @@ def _as_complex(a: Any, b: Any) -> tuple[complex, complex]:
 
 
 # Declarative strategies for operators
-_OP_STRATEGIES = {
+_OP_STRATEGIES: dict[Any, tuple[Callable[[Any, Any], Any], ...]] = {
     # Arithmetic operations
     operator.add: (_as_is, _as_float, _as_str),
     operator.mul: (_as_is, _as_float, _as_str),
@@ -42,7 +43,7 @@ _OP_STRATEGIES = {
     operator.floordiv: (_as_is, _as_float),
     operator.pow: (_as_is, _as_float, _as_complex),
     operator.mod: (_as_is, _as_float),
-    
+
     # Comparison operations - try numeric first, then string
     operator.eq: (_as_is, _as_float, _as_str),
     operator.ne: (_as_is, _as_float, _as_str),

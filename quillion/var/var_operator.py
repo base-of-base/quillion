@@ -21,11 +21,11 @@ class VarOperator(ReactiveExpression):
     """Wrapper for variable operations that supports both reactive observation and assignment."""
     __slots__ = ("_computed", "_op_func", "_other", "_var")
 
-    def __init__(self, var: Var, op_func: Callable, other: Any) -> None:
-        self._var = var  # type: ignore
+    def __init__(self, var: Var, op_func: Callable[[Any, Any], Any], other: Any) -> None:
+        self._var = var
         self._op_func = op_func
         self._other = other
-        self._computed = _create_computed(op_func, var, other)  # type: ignore
+        self._computed = _create_computed(op_func, var, other)
 
     @property
     def value(self) -> Any:
@@ -33,48 +33,48 @@ class VarOperator(ReactiveExpression):
         return self._computed.value
 
     @property
-    def _dependencies(self) -> list:
+    def _dependencies(self) -> list[Var]:
         """Return the dependencies of this operation."""
-        return self._computed._dependencies  # type: ignore
+        return self._computed._dependencies
 
-    def observe(self, comp: Component, cb: Callable) -> None:
+    def observe(self, comp: Component, cb: Callable[..., Any]) -> None:
         """Register an observer for changes to this operation's value."""
         self._computed.observe(comp, cb)
 
-    def __call__(self, *args, **kwargs) -> None:
+    def __call__(self, *args: Any, **kwargs: Any) -> None:
         """Apply the operation and assign the result back to the variable."""
-        new_value = self._op_func(self._var.value, self._other)  # type: ignore
-        self._var.set(new_value)  # type: ignore
+        new_value = self._op_func(self._var.value, self._other)
+        self._var.set(new_value)
 
     def __eq__(self, other: object) -> ComputedValue:
         """Equality comparison with computed value."""
         from .computed_value import _create_computed
-        return _create_computed(operator.eq, self._computed, other)  # type: ignore
+        return _create_computed(operator.eq, self._computed, other)
 
     def __ne__(self, other: object) -> ComputedValue:
         """Inequality comparison with computed value."""
         from .computed_value import _create_computed
-        return _create_computed(operator.ne, self._computed, other)  # type: ignore
+        return _create_computed(operator.ne, self._computed, other)
 
     def __lt__(self, other: Any) -> ComputedValue:
         """Less than comparison with computed value."""
         from .computed_value import _create_computed
-        return _create_computed(operator.lt, self._computed, other)  # type: ignore
+        return _create_computed(operator.lt, self._computed, other)
 
     def __le__(self, other: Any) -> ComputedValue:
         """Less than or equal comparison with computed value."""
         from .computed_value import _create_computed
-        return _create_computed(operator.le, self._computed, other)  # type: ignore
+        return _create_computed(operator.le, self._computed, other)
 
     def __gt__(self, other: Any) -> ComputedValue:
         """Greater than comparison with computed value."""
         from .computed_value import _create_computed
-        return _create_computed(operator.gt, self._computed, other)  # type: ignore
+        return _create_computed(operator.gt, self._computed, other)
 
     def __ge__(self, other: Any) -> ComputedValue:
         """Greater than or equal comparison with computed value."""
         from .computed_value import _create_computed
-        return _create_computed(operator.ge, self._computed, other)  # type: ignore
+        return _create_computed(operator.ge, self._computed, other)
 
     def __str__(self) -> str:
         """String representation of the computed value."""

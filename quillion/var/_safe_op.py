@@ -9,7 +9,7 @@ from ._strategies import _OP_STRATEGIES, _as_float, _as_is, _as_str
 __all__ = ["_safe_op", "_try_apply"]
 
 
-def _try_apply(op: Callable, a: Any, b: Any, transforms: Iterable[Callable]) -> Any:
+def _try_apply(op: Callable[[Any, Any], Any], a: Any, b: Any, transforms: Iterable[Callable[[Any, Any], Any]]) -> Any:
     """Try applying operation with a sequence of transformations."""
     for transform in transforms:
         try:
@@ -20,7 +20,7 @@ def _try_apply(op: Callable, a: Any, b: Any, transforms: Iterable[Callable]) -> 
     raise TypeError(f"Operation {op.__name__} failed for values: {a!r}, {b!r}")
 
 
-def _safe_op(op_func: Callable, a: Any, b: Any) -> Any:
+def _safe_op(op_func: Callable[[Any, Any], Any], a: Any, b: Any) -> Any:
     """
     Safely apply an operator with explicit coercion strategy.
     """

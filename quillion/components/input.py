@@ -38,4 +38,4 @@ class InputComponent(TwoWayBindingElement):
             self.update_var_from_event(event_data["value"])
 
 
-input = InputComponent
+input: type[InputComponent] = InputComponent

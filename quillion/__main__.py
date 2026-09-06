@@ -2,12 +2,15 @@
 Entry point for `python -m quillion`.
 """
 
+from __future__ import annotations
+
 import argparse
 import importlib
 import os
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 from . import cli
 from .app import app
@@ -43,15 +46,16 @@ def main() -> None:
     init_p.add_argument("--name", default="Quillion App", help="Application name")
 
     args = parser.parse_args()
-    
+
     if args.command == "new":
-        project_path = Path(args.path)
-        
-        if project_path.exists() and not args.force and project_path.is_dir() and any(project_path.iterdir()):
-                cli.print_err(f"Directory is not empty: {project_path}")
-                cli.print_info("Use --force to override or choose a different path")
-                sys.exit(1)
-        
+        project_path: Path = Path(args.path)
+
+        if (project_path.exists() and not args.force and project_path.is_dir()
+                and any(project_path.iterdir())):
+            cli.print_err(f"Directory is not empty: {project_path}")
+            cli.print_info("Use --force to override or choose a different path")
+            sys.exit(1)
+
         try:
             project_path.mkdir(parents=True, exist_ok=True)
             create_q_project(project_path, args.name, force=args.force)
@@ -75,21 +79,21 @@ def main() -> None:
         except Exception as e:  # noqa: BLE001
             cli.print_err(f"Failed to initialize project: {e}")
             sys.exit(1)
-    
+
     elif args.command == "run":
-        target = os.path.abspath(args.target)
+        target: str = os.path.abspath(args.target)
         if not os.path.exists(target):
             cli.print_err(f"File not found: {target}")
             sys.exit(1)
 
-        target_dir = os.path.dirname(target)
+        target_dir: str = os.path.dirname(target)
         if target_dir not in sys.path:
             sys.path.insert(0, target_dir)
 
-        module_name = os.path.splitext(os.path.basename(target))[0]
+        module_name: str = os.path.splitext(os.path.basename(target))[0]
 
         try:
-            mod = importlib.import_module(module_name)
+            mod: Any = importlib.import_module(module_name)
         except ImportError as e:
             cli.print_err(f"Could not import module {module_name}: {e}")
             sys.exit(1)
@@ -107,7 +111,7 @@ def main() -> None:
             )
         except KeyboardInterrupt:
             print(f"{cli._C.DIM}shutting down{cli._C.RESET}")
-    
+
     else:
         parser.print_help()
 

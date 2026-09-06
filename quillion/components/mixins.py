@@ -40,7 +40,7 @@ class TextMixin:
             session.updater.schedule_update(cast("Component", self))
 
     def get_props(self) -> dict[str, Any]:
-        props = {"textContent": self.content}
+        props: dict[str, Any] = {"textContent": self.content}
         props.update(cast("Component", super()).get_props())
         return props
 
@@ -50,7 +50,7 @@ class ReactiveContainerMixin:
     Mixin for containers (Div, Span etc).
     Becomes reactive automatically if `Var` children detected
     """
-    
+
     _children_spec: tuple[Any, ...]
     _vars: list[Var]
     _children_cache: list[Component]
@@ -62,11 +62,11 @@ class ReactiveContainerMixin:
         self._is_reactive = bool(self._vars)
         self._children_cache = self._build_children(children)
         super().__init__(**kwargs)
-        self.children = self._children_cache
+        self.children: list[Component] = self._children_cache
 
     def _extract_vars(self, items: Any) -> list[Var]:
         """Extracts Var from struct."""
-        result = []
+        result: list[Var] = []
         if hasattr(items, "observe") and (hasattr(items, "_key") or hasattr(items, "_dependencies")):
             result.append(items)
         elif isinstance(items, (list, tuple)):
@@ -77,12 +77,11 @@ class ReactiveContainerMixin:
     def _build_children(self, items: Any) -> list[Component]:
         """Converts children to components."""
         from .elements import Text
-        
-        result = []
-        
-        # Var or ComputedValue
+
+        result: list[Component] = []
+
         if hasattr(items, "observe") and (hasattr(items, "_key") or hasattr(items, "_dependencies")):
-            value = items.value if hasattr(items, "value") else items
+            value: Any = items.value if hasattr(items, "value") else items
             if isinstance(value, (list, tuple)):
                 for item in value:
                     result.extend(self._build_children(item))
@@ -90,20 +89,17 @@ class ReactiveContainerMixin:
                 result.append(value)
             else:
                 result.append(Text(str(value)))
-        
-        # List or tuple - process each element
+
         elif isinstance(items, (list, tuple)):
             for item in items:
                 result.extend(self._build_children(item))
-        
-        # Ready component
+
         elif isinstance(items, Component):
             result.append(items)
-        
-        # Primitive
+
         else:
             result.append(Text(str(items)) if not isinstance(items, str) else Text(items))
-        
+
         return result
 
     def _post_init(self) -> None:

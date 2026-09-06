@@ -6,15 +6,19 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
+
+if TYPE_CHECKING:
+    from ..session import Session
 
 from .. import _context as ctx
 from .base import Component
 from .mixins import ReactiveContainerMixin, TextMixin
 
 
-def _wrap_children(children) -> list[Component]:
-    return [Text(c) if isinstance(c, str) else c for c in children]
+def _wrap_children(children: Any) -> list[Component]:
+    result: list[Component] = [Text(c) if isinstance(c, str) else c for c in children]
+    return result
 
 
 class Div(ReactiveContainerMixin, Component):
@@ -32,14 +36,14 @@ class Button(Component):
     tag_name = "button"
 
     def __init__(
-        self, label: str, on_click: Callable | None = None, **kwargs: Any
+        self, label: str, on_click: Callable[[Any], Any] | None = None, **kwargs: Any
     ) -> None:
         super().__init__(**kwargs)
         self.label = label
         self.on_click = on_click
 
     def get_props(self) -> dict[str, Any]:
-        props = {"textContent": self.label}
+        props: dict[str, Any] = {"textContent": self.label}
         props.update(super().get_props())
         return props
 
@@ -64,12 +68,12 @@ class NavLink(Component):
         self.label = label
 
     def get_props(self) -> dict[str, Any]:
-        props = {"textContent": self.label, "href": "#"}
+        props: dict[str, Any] = {"textContent": self.label, "href": "#"}
         props.update(super().get_props())
         return props
 
     def on_click(self, event_data: dict | None = None) -> None:
-        session = ctx.current_session.get()
+        session = cast("Session", ctx.current_session.get())
         if session:
             asyncio.create_task(
                 session.navigator.navigate_to(self.path, session.serializer)
@@ -85,7 +89,7 @@ class Image(Component):
         self.alt = alt
 
     def get_props(self) -> dict[str, Any]:
-        props = {"src": self.src, "alt": self.alt}
+        props: dict[str, Any] = {"src": self.src, "alt": self.alt}
         props.update(super().get_props())
         return props
 
@@ -99,7 +103,7 @@ class Link(Component):
         self.rel = rel
 
     def get_props(self) -> dict[str, Any]:
-        props = {"href": self.href, "rel": self.rel}
+        props: dict[str, Any] = {"href": self.href, "rel": self.rel}
         props.update(super().get_props())
         return props
 
@@ -135,7 +139,7 @@ class Style(Component):
         self.content = content
 
     def get_props(self) -> dict[str, Any]:
-        props = {"textContent": self.content}
+        props: dict[str, Any] = {"textContent": self.content}
         props.update(super().get_props())
         return props
 
@@ -176,7 +180,7 @@ class Anchor(Component):
         super().__init__(**kwargs)
 
     def get_props(self) -> dict[str, Any]:
-        props = {"href": self.href}
+        props: dict[str, Any] = {"href": self.href}
         props.update(super().get_props())
         return props
 
@@ -195,19 +199,19 @@ class HorizontalRule(Component):
         return []
 
 
-text = Text
-button = Button
-heading = Heading
-div = Div
-span = Span
-navlink = NavLink
-image = Image
-link = Link
-script = Script
-style = Style
-ul = UnorderedList
-ol = OrderedList
-li = ListItem
-a = Anchor
-br = Break
-hr = HorizontalRule
+text: type[Text] = Text
+button: type[Button] = Button
+heading: type[Heading] = Heading
+div: type[Div] = Div
+span: type[Span] = Span
+navlink: type[NavLink] = NavLink
+image: type[Image] = Image
+link: type[Link] = Link
+script: type[Script] = Script
+style: type[Style] = Style
+ul: type[UnorderedList] = UnorderedList
+ol: type[OrderedList] = OrderedList
+li: type[ListItem] = ListItem
+a: type[Anchor] = Anchor
+br: type[Break] = Break
+hr: type[HorizontalRule] = HorizontalRule

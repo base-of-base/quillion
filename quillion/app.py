@@ -7,6 +7,7 @@ from __future__ import annotations
 import ast
 import asyncio
 import os
+import types
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
@@ -74,7 +75,7 @@ class App:
         self._static_dirs.append((prefix, os.path.abspath(directory)))
         return self
 
-    def page(self, path: str) -> Callable:
+    def page(self, path: str) -> Callable[[Callable[[], Component]], Callable[[], Component]]:
         def decorator(f: Callable[[], Component]) -> Callable[[], Component]:
             self.routes[path] = f
             return f
@@ -89,7 +90,7 @@ class App:
         if hasattr(main_module, "_reactive_transformed"):
             return
 
-        main_file = getattr(main_module, "__file__", None)
+        main_file: str | None = getattr(main_module, "__file__", None)
         if not main_file or not main_file.endswith(".py"):
             return
         if not os.path.exists(main_file):
@@ -97,13 +98,13 @@ class App:
 
         try:
             with open(main_file, "r", encoding="utf-8") as f:
-                source = f.read()
+                source: str = f.read()
 
-            tree = ast.parse(source, filename=main_file)
+            tree: ast.Module = ast.parse(source, filename=main_file)
             transformer = _ReactiveVarTransformer()
             transformer.transform(tree)
             ast.fix_missing_locations(tree)
-            code = compile(tree, main_file, "exec")
+            code: types.CodeType = compile(tree, main_file, "exec")
 
             exec(code, main_module.__dict__)  # noqa: S102
             main_module._reactive_transformed = True
@@ -125,9 +126,9 @@ class App:
     async def _ws_handler(self, ws: Any, path: str | None = None) -> None:
         from .session import Session as _Session
 
-        session = _Session(ws, self)
+        session: Session = _Session(ws, self)
         self.sessions[ws] = session
-        token = ctx.current_session.set(session)
+        token: Any = ctx.current_session.set(session)
         try:
             await session.initialize()
             await session.process_messages()
