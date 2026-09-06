@@ -1,6 +1,4 @@
-"""
-Static file handler and raw HTTP/1.1 server.
-"""
+"""Static file handler and raw HTTP/1.1 server."""
 
 from __future__ import annotations
 
@@ -11,7 +9,7 @@ from collections.abc import Callable
 from typing import Any
 from urllib.parse import unquote
 
-from .cli import print_err
+from ..cli import print_err
 
 
 async def _read_file_bytes(path: str) -> bytes:

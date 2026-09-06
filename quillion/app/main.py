@@ -15,16 +15,16 @@ from websockets.server import serve
 
 import __main__ as main_module
 
-from . import _context as ctx
-from .cli import print_banner
-from .server import http_handler
-from .var.var import _ReactiveVarTransformer, auto_name_vars
-from .watcher import watch_and_reload
+from .. import _context as ctx
+from ..cli import print_banner
+from ..server import http_handler
+from ..var.var import _ReactiveVarTransformer, auto_name_vars
+from ..watcher import watch_and_reload
 
 if TYPE_CHECKING:
-    from .components.base import Component
-    from .components.two_way import TwoWayBindingElement
-    from .session import Session
+    from ..components.base import Component
+    from ..components.two_way import TwoWayBindingElement
+    from ..session import Session
 
 
 class App:
@@ -124,7 +124,7 @@ class App:
         await http_handler(reader, writer, self._static_dirs, self._index_html_path())
 
     async def _ws_handler(self, ws: Any, path: str | None = None) -> None:
-        from .session import Session as _Session
+        from ..session import Session as _Session
 
         session: Session = _Session(ws, self)
         self.sessions[ws] = session

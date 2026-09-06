@@ -11,11 +11,11 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from . import _context as ctx
+from .. import _context as ctx
 
 if TYPE_CHECKING:
-    from .app import App
-    from .components.base import Component
+    from ..app import App
+    from ..components.base import Component
 
 
 @dataclass

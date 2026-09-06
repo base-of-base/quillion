@@ -1,9 +1,11 @@
 """Project creation and management utilities."""
 
+from __future__ import annotations
+
 from pathlib import Path
 
-from . import cli
-from .templates import INDEX_HTML_TEMPLATE, MAIN_PY_TEMPLATE
+from .. import cli
+from ..templates import INDEX_HTML_TEMPLATE, MAIN_PY_TEMPLATE
 
 
 def is_quillion_project(path: Path) -> bool:

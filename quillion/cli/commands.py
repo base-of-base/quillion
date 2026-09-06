@@ -1,6 +1,4 @@
-"""
-Terminal output: colours, banner, reload messages.
-"""
+"""Terminal output: colours, banner, reload messages."""
 
 from __future__ import annotations
 
@@ -78,9 +76,11 @@ def print_err(msg: str) -> None:
     tag = _clr(_C.RED + _C.BOLD, "error") if _C.supported() else "error"
     print(f"  {tag}  {msg}")
 
+
 def print_ok(msg: str) -> None:
     check = _clr(_C.GREEN + _C.BOLD, "✓") if _C.supported() else "✓"
     print(f"  {check}  {msg}")
+
 
 def print_info(msg: str) -> None:
     arrow = _clr(_C.CYAN + _C.BOLD, "→") if _C.supported() else "→"

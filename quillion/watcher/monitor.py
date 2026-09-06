@@ -15,14 +15,14 @@ import time
 import traceback
 from typing import TYPE_CHECKING
 
-from . import _context as ctx
-from .cli import _C, _clr, print_reload
-from .var import auto_name_vars
+from .. import _context as ctx
+from ..cli import _C, _clr, print_reload
+from ..var import auto_name_vars
 
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from .app import App
+    from ..app import App
 
 
 def file_hash(path: str) -> str:
