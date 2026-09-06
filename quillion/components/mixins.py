@@ -8,7 +8,8 @@ from .base import Component
 if TYPE_CHECKING:
     from ..var import Var
     from ..session import Session
-    
+
+from .. import _context as ctx
 
 
 class TextMixin:
@@ -30,6 +31,8 @@ class TextMixin:
 
     def _update(self, session: Optional["Session"]) -> None:
         self.content = "".join(str(p) for p in self._parts)
+        if session is None:
+            session = ctx.current_session.get()
         if session:
             session.updater.schedule_update(cast("Component", self))
 
@@ -61,7 +64,7 @@ class ReactiveContainerMixin:
     def _extract_vars(self, items: Any) -> List["Var"]:
         """Extracts Var from struct."""
         result = []
-        if hasattr(items, "observe") and hasattr(items, "_key"):
+        if hasattr(items, "observe") and (hasattr(items, "_key") or hasattr(items, "_dependencies")):
             result.append(items)
         elif isinstance(items, (list, tuple)):
             for item in items:
@@ -69,44 +72,39 @@ class ReactiveContainerMixin:
         return result
 
     def _build_children(self, items: Any) -> List["Component"]:
-        """Converts children to components"""
+        """Converts children to components."""
         from .elements import Text
         
         result = []
         
-        # it's Var
-        if hasattr(items, "observe") and hasattr(items, "_key"):
-            value = items.value
-            if isinstance(value, (list, tuple, set)):
-                # Var contains a set — expand every element
+        # Var or ComputedValue
+        if hasattr(items, "observe") and (hasattr(items, "_key") or hasattr(items, "_dependencies")):
+            value = items.value if hasattr(items, "value") else items
+            if isinstance(value, (list, tuple)):
                 for item in value:
                     result.extend(self._build_children(item))
+            elif isinstance(value, Component):
+                result.append(value)
             else:
-                # single val
-                if isinstance(value, str):
-                    result.append(Text(value))
-                elif isinstance(value, Component):
-                    result.append(value)
-                else:
-                    result.append(Text(str(value)))
+                result.append(Text(str(value)))
         
-        # it's list/tuple — handle every el
+        # List or tuple - process each element
         elif isinstance(items, (list, tuple)):
             for item in items:
                 result.extend(self._build_children(item))
         
-        # ready component
+        # Ready component
         elif isinstance(items, Component):
             result.append(items)
         
-        # primitive
+        # Primitive
         else:
             result.append(Text(str(items)) if not isinstance(items, str) else Text(items))
         
         return result
 
     def _post_init(self) -> None:
-        """Subscribes to every `Var`"""
+        """Subscribes to every `Var`."""
         if self._vars:
             for v in self._vars:
                 v.observe(cast("Component", self), lambda c, v, s: self._update_children(s))
@@ -115,6 +113,8 @@ class ReactiveContainerMixin:
         """Rebuild children on `Var` changes."""
         self._children_cache = self._build_children(self._children_spec)
         self.children = self._children_cache
+        if session is None:
+            session = ctx.current_session.get()
         if session:
             session.updater.schedule_update(cast("Component", self))
 

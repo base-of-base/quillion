@@ -9,6 +9,7 @@ import importlib.util
 import sys
 import types
 import uuid
+import os
 from typing import Any, Callable, Optional, List, TYPE_CHECKING
 from weakref import WeakKeyDictionary
 
@@ -43,7 +44,7 @@ class Var(ReactiveExpression):
         self._raw_callbacks = []
         self._component_factory = None
         self._auto_named = False
-        
+
         if isinstance(initial_value, (list, dict, set)):
             self._factory = lambda: type(initial_value)()
         elif hasattr(initial_value, "__class__") and hasattr(initial_value, "__init__"):
@@ -52,8 +53,7 @@ class Var(ReactiveExpression):
             except:
                 self._factory = lambda: initial_value
         else:
-                self._factory = lambda: initial_value
-        
+            self._factory = lambda: initial_value
 
     def _set_stable_key(self, name: str) -> None:
         """Set a stable key for this variable based on a name."""
@@ -79,15 +79,15 @@ class Var(ReactiveExpression):
         session = ctx.current_session.get()
         if session is None:
             return self._initial
-        
+
         raw_value = session.state.get_var_value(self._key, None)
-        
+
         if raw_value is None:
             new_value = self._factory()
             wrapped = self._wrap_value(new_value)
             session.state.set_var_value(self._key, wrapped)
             return wrapped
-        
+
         return raw_value
 
     @value.setter
@@ -97,7 +97,7 @@ class Var(ReactiveExpression):
         if session is None:
             self._initial = self._wrap_value(new_value)
             return
-        
+
         wrapped = self._wrap_value(new_value)
         session.state.set_var_value(self._key, wrapped)
         self._notify_self()
@@ -109,10 +109,6 @@ class Var(ReactiveExpression):
     def update(self, func: Callable[[Any], Any]) -> None:
         """Update the value by applying a function to the current value."""
         self.value = func(self.value)
-
-    def append(self, suffix: str) -> VarOperator:
-        """Append a suffix to the string representation."""
-        return VarOperator(self, lambda a, b: str(a) + b, suffix)  # type: ignore
 
     def _notify_self(self) -> None:
         """Notify all observers of a change."""
@@ -200,32 +196,31 @@ class Var(ReactiveExpression):
                 self._raw_callbacks.remove(cb)
         return unsubscribe
 
-
     def __getattr__(self, name: str) -> Any:
         reserved = {
             '_key', '_initial', '_factory', '_observers', '_raw_callbacks',
             '_component_factory', '_auto_named', 'value', 'set', 'update',
-            'append', 'observe', 'bind_with', 'map', '_notify_self',
+            'observe', 'bind_with', 'map', '_notify_self',
             '_notify', '_add_raw_callback', '_set_stable_key', '_wrap_value'
         }
         if name.startswith('_') or name in reserved:
             raise AttributeError(name)
-        
+
         value = self.value
-        
+
         if not hasattr(value, name):
             raise AttributeError(f"'Var' object has no attribute '{name}'")
-        
+
         attr = getattr(value, name)
-        
+
         if not callable(attr):
             return attr
-        
+
         def wrapper(*args, **kwargs):
             result = attr(*args, **kwargs)
             self._notify_self()
             return result
-        
+
         return wrapper
 
     def __getitem__(self, key: Any) -> Any:
@@ -264,36 +259,339 @@ def auto_name_vars(module: Any) -> None:
             obj._set_stable_key(var_name)
 
 
+# ========== ТРАНСФОРМЕР ==========
+
 class _ReactiveVarTransformer(ast.NodeTransformer):
-    """Finds reactive var names from `counter = var(...)` definitions,
-    then rewrites `counter = <expr>` assignments to `counter.set(<expr>`."""
+    """
+    Превращает все глобальные присваивания в реактивные переменные (var(...))
+    и заменяет присваивания этим переменным внутри функций и лямбд на вызовы .set().
+    """
 
     def __init__(self) -> None:
+        # Имена реактивных переменных, определённых на верхнем уровне
         self.reactive_names: set[str] = set()
+        # Флаг, нужно ли добавить импорт var
+        self.needs_var_import: bool = False
 
+    def _should_transform(self, filename: str) -> bool:
+        """Проверяет, нужно ли трансформировать модуль."""
+        if not filename:
+            return False
+        
+        if 'site-packages' in filename:
+            return False
+        
+        import sys
+        for path in sys.path:
+            if path and filename.startswith(path):
+                if 'Lib' in path or 'lib' in path:
+                    return False
+                if 'venv' in path or '.venv' in path:
+                    return False
+                if 'python' in path.lower() and 'site-packages' not in path:
+                    return False
+                break
+        
+        import sysconfig
+        stdlib_dir = sysconfig.get_path('stdlib')
+        if stdlib_dir and filename.startswith(stdlib_dir):
+            return False
+        
+        return True
+
+    def _add_var_import(self, tree: ast.Module) -> ast.Module:
+        """Добавляет импорт var в начало модуля, если его нет."""
+        # Проверяем, есть ли уже импорт var
+        for node in tree.body:
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                if isinstance(node, ast.ImportFrom):
+                    if node.module and 'quillion' in node.module:
+                        for alias in node.names:
+                            if alias.name == 'var':
+                                return tree
+                elif isinstance(node, ast.Import):
+                    for alias in node.names:
+                        if alias.name == 'quillion':
+                            return tree
+        
+        # Добавляем импорт: from quillion import var
+        import_node = ast.ImportFrom(
+            module='quillion',
+            names=[ast.alias(name='var', asname=None)],
+            level=0,
+        )
+        tree.body.insert(0, import_node)
+        return tree
+
+    # ----- Глобальные присваивания (уровень модуля) -----
     def visit_Assign(self, node: ast.Assign) -> Any:
-        if (
-            isinstance(node.value, ast.Call)
-            and isinstance(node.value.func, ast.Name)
-            and node.value.func.id == 'var'
-        ):
+        if self._is_var_call(node.value):
             for target in node.targets:
                 if isinstance(target, ast.Name):
                     self.reactive_names.add(target.id)
+            return node
+
+        if self._is_special_assignment(node):
+            return node
+
+        self.needs_var_import = True
+        new_value = self._wrap_in_var(node.value)
+        new_node = ast.Assign(
+            targets=node.targets,
+            value=new_value,
+            type_comment=node.type_comment,
+        )
+        for target in node.targets:
+            if isinstance(target, ast.Name):
+                self.reactive_names.add(target.id)
+        return new_node
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> Any:
+        if not isinstance(node.target, ast.Name):
+            return node
+
+        if node.value and self._is_var_call(node.value):
+            self.reactive_names.add(node.target.id)
+            return node
+
+        self.needs_var_import = True
+        if node.value:
+            new_value = self._wrap_in_var(node.value)
+        else:
+            new_value = ast.Call(
+                func=ast.Name(id='var', ctx=ast.Load()),
+                args=[],
+                keywords=[],
+            )
+        new_node = ast.AnnAssign(
+            target=node.target,
+            annotation=node.annotation,
+            value=new_value,
+            simple=node.simple,
+        )
+        self.reactive_names.add(node.target.id)
+        return new_node
+
+    # ----- Обработка функций -----
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
+        node.body = self._process_function_body(node.body)
         return node
 
-    def _replace_assign(self, node: ast.Assign) -> Any:
-        """If this is a reactive var assignment, replace with .set() call."""
-        for target in node.targets:
-            if (
-                isinstance(target, ast.Name)
-                and target.id in self.reactive_names
-                and not self._is_var_factory(node.value)
-            ):
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> Any:
+        node.body = self._process_function_body(node.body)
+        return node
+
+    # ----- Обработка вызовов (для лямбд в аргументах) -----
+    def visit_Call(self, node: ast.Call) -> Any:
+        """Обрабатываем вызовы функций - трансформируем лямбды в аргументах."""
+        # Обрабатываем каждый позиционный аргумент
+        new_args = []
+        for arg in node.args:
+            if isinstance(arg, ast.Lambda):
+                # Трансформируем лямбду
+                transformed = self.visit_Lambda(arg)
+                new_args.append(transformed)
+            elif isinstance(arg, ast.Call):
+                # Рекурсивно обрабатываем вложенные вызовы
+                new_args.append(self.visit_Call(arg))
+            else:
+                new_args.append(arg)
+        
+        # Обновляем позиционные аргументы
+        node.args = new_args
+        
+        # Обрабатываем keyword аргументы
+        new_keywords = []
+        for kw in node.keywords:
+            if isinstance(kw.value, ast.Lambda):
+                transformed = self.visit_Lambda(kw.value)
+                new_keywords.append(ast.keyword(arg=kw.arg, value=transformed))
+            elif isinstance(kw.value, ast.Call):
+                new_keywords.append(ast.keyword(arg=kw.arg, value=self.visit_Call(kw.value)))
+            else:
+                new_keywords.append(kw)
+        node.keywords = new_keywords
+        
+        return node
+
+    # ----- Обработка лямбд -----
+    def visit_Lambda(self, node: ast.Lambda) -> Any:
+        """Обрабатываем лямбды - заменяем body если нужно."""
+        if isinstance(node.body, ast.BinOp):
+            transformed = self._transform_binop(node.body)
+            if transformed is not None:
+                node.body = transformed
+                self.needs_var_import = True
+        elif isinstance(node.body, ast.Call):
+            # Проверяем, не является ли это вызовом метода реактивной переменной
+            transformed = self._transform_method_call(node.body)
+            if transformed is not None:
+                node.body = transformed
+                self.needs_var_import = True
+        elif isinstance(node.body, ast.UnaryOp):
+            if isinstance(node.body.operand, ast.Name):
+                name = node.body.operand.id
+                if name in self.reactive_names:
+                    self.needs_var_import = True
+                    node.body = ast.Call(
+                        func=ast.Attribute(
+                            value=ast.Name(id=name, ctx=ast.Load()),
+                            attr='set',
+                            ctx=ast.Load(),
+                        ),
+                        args=[ast.UnaryOp(
+                            op=node.body.op,
+                            operand=ast.Attribute(
+                                value=ast.Name(id=name, ctx=ast.Load()),
+                                attr='value',
+                                ctx=ast.Load(),
+                            )
+                        )],
+                        keywords=[],
+                    )
+        elif isinstance(node.body, ast.Name):
+            # Просто чтение переменной - ничего не делаем
+            pass
+        return node
+
+    def _transform_binop(self, node: ast.BinOp) -> ast.AST | None:
+        """Трансформирует бинарную операцию, если там есть реактивная переменная."""
+        if isinstance(node.left, ast.Name):
+            name = node.left.id
+            if name in self.reactive_names:
+                self.needs_var_import = True
+                return ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id=name, ctx=ast.Load()),
+                        attr='set',
+                        ctx=ast.Load(),
+                    ),
+                    args=[ast.BinOp(
+                        left=ast.Attribute(
+                            value=ast.Name(id=name, ctx=ast.Load()),
+                            attr='value',
+                            ctx=ast.Load(),
+                        ),
+                        op=node.op,
+                        right=node.right,
+                    )],
+                    keywords=[],
+                )
+        if isinstance(node.right, ast.Name):
+            name = node.right.id
+            if name in self.reactive_names:
+                self.needs_var_import = True
+                return ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(id=name, ctx=ast.Load()),
+                        attr='set',
+                        ctx=ast.Load(),
+                    ),
+                    args=[ast.BinOp(
+                        left=node.left,
+                        op=node.op,
+                        right=ast.Attribute(
+                            value=ast.Name(id=name, ctx=ast.Load()),
+                            attr='value',
+                            ctx=ast.Load(),
+                        ),
+                    )],
+                    keywords=[],
+                )
+        return None
+
+    def _transform_method_call(self, node: ast.Call) -> ast.AST | None:
+        """Трансформирует вызов метода реактивной переменной (например, items.append(...))."""
+        if isinstance(node.func, ast.Attribute):
+            if isinstance(node.func.value, ast.Name):
+                name = node.func.value.id
+                if name in self.reactive_names:
+                    # Оставляем как есть, но добавляем флаг
+                    # Метод будет вызван через __getattr__ и вызовет _notify_self
+                    self.needs_var_import = True
+                    return node
+        return None
+
+    def _process_function_body(self, body: list) -> list:
+        """Обрабатывает тело функции, заменяя присваивания глобальным реактивным переменным."""
+        new_body = []
+        for stmt in body:
+            if isinstance(stmt, ast.Assign):
+                new_stmt = self._transform_assign_in_function(stmt)
+                if new_stmt is not None:
+                    new_body.append(new_stmt)
+                    self.needs_var_import = True
+                else:
+                    new_body.append(stmt)
+            elif isinstance(stmt, ast.AugAssign):
+                new_stmt = self._transform_aug_assign_in_function(stmt)
+                if new_stmt is not None:
+                    new_body.append(new_stmt)
+                    self.needs_var_import = True
+                else:
+                    new_body.append(stmt)
+            elif isinstance(stmt, ast.Expr):
+                if isinstance(stmt.value, ast.Lambda):
+                    new_lambda = self.visit_Lambda(stmt.value)
+                    if new_lambda is not None:
+                        new_body.append(ast.Expr(value=new_lambda))
+                    else:
+                        new_body.append(stmt)
+                elif isinstance(stmt.value, ast.Call):
+                    # Обрабатываем вызовы внутри функции
+                    new_call = self.visit_Call(stmt.value)
+                    new_body.append(ast.Expr(value=new_call))
+                else:
+                    new_body.append(stmt)
+            elif isinstance(stmt, (ast.For, ast.While, ast.If, ast.With)):
+                stmt.body = self._process_function_body(stmt.body)
+                if hasattr(stmt, 'orelse') and stmt.orelse:
+                    stmt.orelse = self._process_function_body(stmt.orelse)
+                new_body.append(stmt)
+            elif isinstance(stmt, ast.Return):
+                if stmt.value is not None:
+                    if isinstance(stmt.value, ast.BinOp):
+                        transformed = self._transform_binop(stmt.value)
+                        if transformed is not None:
+                            stmt.value = transformed
+                            self.needs_var_import = True
+                    elif isinstance(stmt.value, ast.UnaryOp):
+                        if isinstance(stmt.value.operand, ast.Name):
+                            name = stmt.value.operand.id
+                            if name in self.reactive_names:
+                                self.needs_var_import = True
+                                stmt.value = ast.Call(
+                                    func=ast.Attribute(
+                                        value=ast.Name(id=name, ctx=ast.Load()),
+                                        attr='set',
+                                        ctx=ast.Load(),
+                                    ),
+                                    args=[ast.UnaryOp(
+                                        op=stmt.value.op,
+                                        operand=ast.Attribute(
+                                            value=ast.Name(id=name, ctx=ast.Load()),
+                                            attr='value',
+                                            ctx=ast.Load(),
+                                        )
+                                    )],
+                                    keywords=[],
+                                )
+                    elif isinstance(stmt.value, ast.Call):
+                        stmt.value = self.visit_Call(stmt.value)
+                new_body.append(stmt)
+            else:
+                new_body.append(stmt)
+        return new_body
+
+    def _transform_assign_in_function(self, node: ast.Assign) -> ast.AST | None:
+        if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            name = node.targets[0].id
+            if name in self.reactive_names:
+                self.needs_var_import = True
                 return ast.Expr(
                     value=ast.Call(
                         func=ast.Attribute(
-                            value=ast.Name(id=target.id, ctx=ast.Load()),
+                            value=ast.Name(id=name, ctx=ast.Load()),
                             attr='set',
                             ctx=ast.Load(),
                         ),
@@ -301,52 +599,109 @@ class _ReactiveVarTransformer(ast.NodeTransformer):
                         keywords=[],
                     )
                 )
-        return node
+        return None
 
-    def _process_body(self, body: list) -> list:
-        """Recursively process statements, replacing reactive var assignments."""
-        for node in body:
-            if isinstance(node, ast.Assign):
-                pass
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                self._process_body(node.body)
-            elif isinstance(node, ast.For):
-                self._process_body(node.body)
-                if node.orelse:
-                    self._process_body(node.orelse)
-            elif isinstance(node, ast.While):
-                self._process_body(node.body)
-                if node.orelse:
-                    self._process_body(node.orelse)
-            elif isinstance(node, ast.If):
-                self._process_body(node.body)
-                if node.orelse:
-                    self._process_body(node.orelse)
-            elif isinstance(node, ast.With):
-                self._process_body(node.body)
-            elif isinstance(node, ast.ExceptHandler):
-                self._process_body(node.body)
-        for i, node in enumerate(body):
-            if isinstance(node, ast.Assign):
-                replacement = self._replace_assign(node)
-                body[i] = replacement
-        return body
+    def _transform_aug_assign_in_function(self, node: ast.AugAssign) -> ast.AST | None:
+        if not isinstance(node.target, ast.Name):
+            return None
+        name = node.target.id
+        if name not in self.reactive_names:
+            return None
 
-    def transform(self, tree: ast.Module) -> ast.Module:
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Assign):
-                self.visit_Assign(node)
-        tree.body = self._process_body(tree.body)
-        return tree
+        self.needs_var_import = True
+        left = ast.Attribute(
+            value=ast.Name(id=name, ctx=ast.Load()),
+            attr='value',
+            ctx=ast.Load(),
+        )
+        bin_op = ast.BinOp(
+            left=left,
+            op=node.op,
+            right=node.value,
+        )
+        return ast.Expr(
+            value=ast.Call(
+                func=ast.Attribute(
+                    value=ast.Name(id=name, ctx=ast.Load()),
+                    attr='set',
+                    ctx=ast.Load(),
+                ),
+                args=[bin_op],
+                keywords=[],
+            )
+        )
 
-    @staticmethod
-    def _is_var_factory(node: ast.AST) -> bool:
+    def _is_var_call(self, node: ast.AST) -> bool:
         return (
             isinstance(node, ast.Call)
             and isinstance(node.func, ast.Name)
             and node.func.id == 'var'
         )
 
+    def _is_special_assignment(self, node: ast.Assign) -> bool:
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id.startswith('__'):
+                return True
+        if isinstance(node.value, (ast.Import, ast.ImportFrom)):
+            return True
+        if isinstance(node.value, (ast.FunctionDef, ast.ClassDef)):
+            return True
+        return False
+
+    def _wrap_in_var(self, value_node: ast.AST) -> ast.Call:
+        return ast.Call(
+            func=ast.Name(id='var', ctx=ast.Load()),
+            args=[value_node],
+            keywords=[],
+        )
+
+    def _find_reactive_names(self, tree: ast.AST) -> None:
+        """Находит все реактивные имена в AST."""
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assign):
+                if self._is_var_call(node.value):
+                    for target in node.targets:
+                        if isinstance(target, ast.Name):
+                            self.reactive_names.add(target.id)
+
+    def transform(self, tree: ast.Module, filename: str = "") -> ast.Module:
+        if not self._should_transform(filename):
+            return tree
+
+        # Сначала находим все реактивные имена
+        self._find_reactive_names(tree)
+
+        # Трансформируем тело модуля
+        new_body = []
+        for stmt in tree.body:
+            if isinstance(stmt, ast.Assign):
+                new_body.append(self.visit_Assign(stmt))
+            elif isinstance(stmt, ast.AnnAssign):
+                new_body.append(self.visit_AnnAssign(stmt))
+            elif isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                new_body.append(self.visit(stmt))
+            elif isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Lambda):
+                new_lambda = self.visit_Lambda(stmt.value)
+                new_body.append(ast.Expr(value=new_lambda))
+            elif isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call):
+                # Обрабатываем вызовы на верхнем уровне (например, button(...))
+                new_call = self.visit_Call(stmt.value)
+                new_body.append(ast.Expr(value=new_call))
+            elif isinstance(stmt, (ast.ClassDef, ast.For, ast.While, ast.If, ast.With)):
+                new_body.append(self.generic_visit(stmt))
+            else:
+                new_body.append(stmt)
+
+        tree.body = new_body
+        
+        # Добавляем импорт var если нужно
+        if self.needs_var_import:
+            tree = self._add_var_import(tree)
+        
+        return tree
+
+
+# ========== ЗАГРУЗЧИК С ТРАНСФОРМЕРОМ ==========
 
 class _ReactiveVarLoader(importlib.abc.Loader):
     def __init__(self, source_path: str, original_loader: importlib.abc.Loader) -> None:
@@ -363,12 +718,11 @@ class _ReactiveVarLoader(importlib.abc.Loader):
         try:
             tree = ast.parse(source, filename=self._source_path)
             transformer = _ReactiveVarTransformer()
-            transformer.transform(tree)
-            ast.fix_missing_locations(tree)
-            return compile(tree, self._source_path, 'exec')
+            transformed_tree = transformer.transform(tree, filename=self._source_path)
+            ast.fix_missing_locations(transformed_tree)
+            return compile(transformed_tree, self._source_path, 'exec')
         except SyntaxError:
-            pass
-        return self._original_loader.get_code(fullname)
+            return self._original_loader.get_code(fullname)
 
     def is_package(self, fullname: str) -> bool:
         return self._original_loader.is_package(fullname)
@@ -383,8 +737,9 @@ class _ReactiveVarLoader(importlib.abc.Loader):
         exec(code, module.__dict__)
 
 
-_PathFinder_find_spec = importlib.machinery.PathFinder.find_spec.__func__
+# ========== УСТАНОВКА FINDER ==========
 
+_PathFinder_find_spec = importlib.machinery.PathFinder.find_spec.__func__
 
 class _ReactiveVarFinder:
     _installed = False
@@ -399,15 +754,38 @@ class _ReactiveVarFinder:
     def find_spec(self, fullname: str, path=None, target=None):
         if 'quillion' in fullname:
             return None
+        
+        if fullname in sys.builtin_module_names:
+            return None
+        
+        if hasattr(sys, 'stdlib_module_names'):
+            if fullname in sys.stdlib_module_names:
+                return None
+            for stdlib_name in sys.stdlib_module_names:
+                if fullname.startswith(stdlib_name + '.'):
+                    return None
+        
         try:
             spec = _PathFinder_find_spec(importlib.machinery.PathFinder, fullname, path, target)
         except (ImportError, ModuleNotFoundError, AttributeError, RecursionError):
             return None
+        
         if spec is None or spec.loader is None or isinstance(spec.loader, _ReactiveVarLoader):
             return None
+        
         loader_name = type(spec.loader).__name__
         if loader_name in ('BuiltinImporter', 'FrozenImporter', 'ExtensionFileLoader'):
             return None
+        
+        if spec.origin and 'site-packages' in spec.origin:
+            return None
+        
+        if spec.origin:
+            import sysconfig
+            stdlib_dir = sysconfig.get_path('stdlib')
+            if stdlib_dir and spec.origin.startswith(stdlib_dir):
+                return None
+        
         return importlib.util.spec_from_loader(
             fullname,
             _ReactiveVarLoader(spec.origin or fullname, spec.loader),
@@ -420,18 +798,12 @@ _ReactiveVarFinder.install()
 
 
 class VarNamespace:
-    """Callable namespace for reactive variables.
-
-    Supports var.counter = var(0) to create reactive vars,
-    var.counter = 42 to set a Var's value reactively,
-    and var(0) to create a new Var.
-    """
+    """Callable namespace for reactive variables."""
 
     def __init__(self) -> None:
         self._vars: dict[str, Var] = {}
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        """Delegate to the var() factory function."""
         return var(*args, **kwargs)
 
     def __setattr__(self, name: str, value: Any) -> None:

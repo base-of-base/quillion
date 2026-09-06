@@ -1,17 +1,22 @@
-from quillion import app, page, text, button, heading, input, div, span, var
+from quillion import app, page, button, heading, div
 
-items = var([])
-
-def add_item():
-    items.value.append(f"Item {len(items) + 1}")
+counter = 0
+items = []
 
 @page("/")
 def home():
     return div(
         div(
-            heading("Reactive List", level=3),
-            button("Add Item", on_click=add_item),
-            div(items),
+            heading("Counter: ", counter, level=3),
+            div(
+                button("+1", on_click=lambda: counter + 1),
+                button("-1", on_click=lambda: counter - 1),
+                button("×2", on_click=lambda: counter * 2),
+                button("Reset", on_click=lambda: counter.set(0)),
+            ),
+            heading("Items: ", items, level=4),
+            button("Add", on_click=lambda: items.append(f"Item {len(items) + 1}")),
+            div(items.map(lambda x: div(x))),
         ),
     )
 
