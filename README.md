@@ -14,7 +14,7 @@
 ```python
 from quillion import app, page, var, container, text, button
 
-count = var(0)
+count = 0
 
 @page("/")
 def index():
